@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Specialization extends Model
 {
     protected $guarded = [];
-    public function doctor(){
-        return $this->belongsTo(Doctor::class);
+    public function doctors(){
+        return $this->hasMany(Doctor::class);
     }
 }

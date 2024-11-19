@@ -8,11 +8,11 @@ class Appointment extends Model
 {
     protected $guarded = ['role'];
     public function doctor(){
-        return $this->hasOne(Doctor::class);
+        return $this->belongsTo(Doctor::class);
     }
 
     public function patient(){
-        return $this->hasOne(Patient::class);
+        return $this->belongsTo(Patient::class);
     }
 
 }
