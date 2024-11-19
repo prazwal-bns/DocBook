@@ -15,84 +15,140 @@ The **Doctor Appointment System** is a Laravel project designed to manage intera
 
 ## Database Schema
 
-### 1. Users Table
-This table stores general information for all users (patients, doctors, and admins).
+# Database Design for Doctor Appointment System
 
-| Column Name | Data Type          | Description                                     |
-|-------------|--------------------|-------------------------------------------------|
-| `user_id`   | INT (PK)           | Primary key, unique ID for each user.           |
-| `username`  | VARCHAR(100)       | User's name.                                    |
-| `email`     | VARCHAR(100)       | Email address, unique for each user.            |
-| `password`  | VARCHAR(255)       | Hashed password.                                |
-| `role`      | ENUM('patient', 'doctor', 'admin') | User role.                              |
-| `created_at`| TIMESTAMP          | Record creation timestamp.                      |
-| `updated_at`| TIMESTAMP          | Record update timestamp.                        |
+## 1. Users Table
 
----
-
-### 2. Patients Table
-This table stores additional details specific to patients.
-
-| Column Name     | Data Type    | Description                                      |
-|------------------|-------------|--------------------------------------------------|
-| `patient_id`     | INT (PK, FK)| References `user_id` from the Users table.       |
-| `date_of_birth`  | DATE        | Patient's date of birth.                         |
-| `contact_number` | VARCHAR(15) | Patient's contact number.                        |
-| `address`        | TEXT        | Patient's address.                               |
-| `created_at`     | TIMESTAMP   | Record creation timestamp.                       |
-| `updated_at`     | TIMESTAMP   | Record update timestamp.                         |
+| Column Name        | Data Type  | Constraints                          |
+|--------------------|------------|--------------------------------------|
+| `id`               | BIGINT (PK)| Auto Increment                      |
+| `name`             | STRING     | Not Null                            |
+| `email`            | STRING     | Unique, Not Null                    |
+| `role`             | ENUM       | Default: 'patient'                  |
+| `address`          | STRING     | Nullable                            |
+| `phone`            | STRING     | Nullable                            |
+| `email_verified_at`| TIMESTAMP  | Nullable                            |
+| `password`         | STRING     | Not Null                            |
+| `remember_token`   | STRING     | Nullable                            |
+| `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+| `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 
 ---
 
-### 3. Doctors Table
-This table stores additional details specific to doctors.
+## 2. Patients Table
 
-| Column Name      | Data Type    | Description                                      |
-|-------------------|-------------|--------------------------------------------------|
-| `doctor_id`       | INT (PK, FK)| References `user_id` from the Users table.       |
-| `specialization_id`| INT (FK)   | References `specialization_id` from Specializations. |
-| `contact_number`  | VARCHAR(15) | Doctor's contact number.                         |
-| `availability`    | BOOLEAN     | Indicates if the doctor is currently available.  |
-| `free_time`       | VARCHAR(50) | Free time slots (e.g., '10 AM - 12 PM').         |
-| `created_at`      | TIMESTAMP   | Record creation timestamp.                       |
-| `updated_at`      | TIMESTAMP   | Record update timestamp.                         |
+| Column Name        | Data Type  | Constraints                          |
+|--------------------|------------|--------------------------------------|
+| `id`               | BIGINT (PK)| Auto Increment                      |
+| `user_id`          | BIGINT (FK)| References `users.id`, Cascade On Delete |
+| `gender`           | STRING     | Not Null                            |
+| `dob`              | DATE       | Not Null                            |
+| `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+| `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 
 ---
 
-### 4. Appointments Table
-This table stores the appointments booked by patients with doctors.
+## 3. Doctors Table
 
-| Column Name        | Data Type           | Description                                   |
-|---------------------|---------------------|-----------------------------------------------|
-| `appointment_id`    | INT (PK)           | Primary key, unique ID for each appointment.  |
-| `patient_id`        | INT (FK)           | References `patient_id` from the Patients table. |
-| `doctor_id`         | INT (FK)           | References `doctor_id` from the Doctors table. |
-| `appointment_date`  | DATE               | Date of the appointment.                      |
-| `appointment_time`  | TIME               | Time of the appointment.                      |
-| `status`            | ENUM('booked', 'completed', 'cancelled') | Appointment status. |
-| `created_at`        | TIMESTAMP          | Record creation timestamp.                    |
-| `updated_at`        | TIMESTAMP          | Record update timestamp.                      |
+| Column Name        | Data Type  | Constraints                          |
+|--------------------|------------|--------------------------------------|
+| `id`               | BIGINT (PK)| Auto Increment                      |
+| `user_id`          | BIGINT (FK)| References `users.id`, Cascade On Delete |
+| `specialization_id`| BIGINT (FK)| References `specializations.id`, Cascade On Delete |
+| `status`           | ENUM       | Default: 'available'                |
+| `bio`              | TEXT       | Not Null                            |
+| `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+| `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 
 ---
 
-### 5. Specializations Table
-This table lists the specializations available for doctors.
+## 4. Appointments Table
 
-| Column Name        | Data Type    | Description                                    |
-|---------------------|-------------|------------------------------------------------|
-| `specialization_id` | INT (PK)    | Primary key, unique ID for each specialization.|
-| `specialization_name`| VARCHAR(100)| Name of the specialization (e.g., Cardiologist).|
-| `created_at`        | TIMESTAMP   | Record creation timestamp.                     |
-| `updated_at`        | TIMESTAMP   | Record update timestamp.                       |
+| Column Name        | Data Type  | Constraints                          |
+|--------------------|------------|--------------------------------------|
+| `id`               | BIGINT (PK)| Auto Increment                      |
+| `patient_id`       | BIGINT (FK)| References `patients.id`, Cascade On Delete |
+| `doctor_id`        | BIGINT (FK)| References `doctors.id`, Cascade On Delete |
+| `appointment_date` | DATE       | Not Null                            |
+| `start_time`       | TIME       | Not Null                            |
+| `end_time`         | TIME       | Not Null                            |
+| `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+| `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 
 ---
 
-## Relationships
+## 5. Schedules Table
 
-1. **Users ↔ Patients**: `user_id` in Users is referenced as `patient_id` in Patients.
-2. **Users ↔ Doctors**: `user_id` in Users is referenced as `doctor_id` in Doctors.
-3. **Doctors ↔ Specializations**: `specialization_id` in Specializations is referenced in Doctors.
-4. **Appointments ↔ Patients and Doctors**: `patient_id` references Patients, and `doctor_id` references Doctors.
+| Column Name        | Data Type  | Constraints                          |
+|--------------------|------------|--------------------------------------|
+| `id`               | BIGINT (PK)| Auto Increment                      |
+| `doctor_id`        | BIGINT (FK)| References `doctors.id`, Cascade On Delete |
+| `day`              | ENUM       | Not Null                            |
+| `start_time`       | TIME       | Not Null                            |
+| `end_time`         | TIME       | Not Null                            |
+| `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+| `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+
+---
+
+## 6. Specializations Table
+
+| Column Name        | Data Type  | Constraints                          |
+|--------------------|------------|--------------------------------------|
+| `id`               | BIGINT (PK)| Auto Increment                      |
+| `name`             | STRING     | Not Null                            |
+| `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+| `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
+
+
+# Database Relationships
+
+## Users and Patients
+
+- **One-to-One**:  
+  Each `user` can be associated with exactly one `patient` record.  
+  - **Foreign Key**: `patients.user_id` → `users.id`
+
+---
+
+## Users and Doctors
+
+- **One-to-One**:  
+  Each `user` can be associated with exactly one `doctor` record.  
+  - **Foreign Key**: `doctors.user_id` → `users.id`
+
+---
+
+## Doctors and Specializations
+
+- **Many-to-One**:  
+  Each `doctor` belongs to one `specialization`, but a `specialization` can have many `doctors`.  
+  - **Foreign Key**: `doctors.specialization_id` → `specializations.id`
+
+---
+
+## Patients and Appointments
+
+- **One-to-Many**:  
+  A `patient` can have multiple `appointments`, but each `appointment` belongs to one `patient`.  
+  - **Foreign Key**: `appointments.patient_id` → `patients.id`
+
+---
+
+## Doctors and Appointments
+
+- **One-to-Many**:  
+  A `doctor` can have multiple `appointments`, but each `appointment` belongs to one `doctor`.  
+  - **Foreign Key**: `appointments.doctor_id` → `doctors.id`
+
+---
+
+## Doctors and Schedules
+
+- **One-to-Many**:  
+  A `doctor` can have multiple `schedules`, but each `schedule` belongs to one `doctor`.  
+  - **Foreign Key**: `schedules.doctor_id` → `doctors.id`
+
 
 ---
 
@@ -104,8 +160,8 @@ This table lists the specializations available for doctors.
 ---
 
 ## Class Diagram
-<img src="https://github.com/user-attachments/assets/0019be7c-4dd5-4770-bcef-3b8e030a46cd" height="500">
 
+![classdiagram](https://github.com/user-attachments/assets/d6cecd07-9ec4-420b-86a2-b41da7f9a1f1)
 
 
 ### Contributions
