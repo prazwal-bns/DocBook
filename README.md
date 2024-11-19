@@ -1,66 +1,112 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# DocBook [Doctor Appointment System]
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+🚀🚀 A comprehensive Doctor Appointment System built using Laravel. ⭐⭐
+
+The **Doctor Appointment System** is a Laravel project designed to manage interactions/appoinments between patients, doctor. It allows patients to book appointments, doctors to manage their schedules, and admins to verify doctors and oversee the system.
+
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/prazwal-bns/DocBook/main)&nbsp;&nbsp;&nbsp;![GitHub Created At](https://img.shields.io/github/created-at/prazwal-bns/DocBook?style=flat-square&logoColor=blue&labelColor=black)&nbsp;&nbsp;&nbsp;![GitHub contributors](https://img.shields.io/github/contributors/prazwal-bns/DocBook?logoColor=Purple&labelColor=black&color=red)&nbsp;&nbsp;&nbsp;![GitHub Repo stars](https://img.shields.io/github/stars/prazwal-bns/DocBook?style=flat-square&labelColor=black&color=yellow)&nbsp;&nbsp;&nbsp;![GitHub issues](https://img.shields.io/github/issues/prazwal-bns/DocBook?labelColor=black&color=orange)&nbsp;&nbsp;&nbsp;![GitHub forks](https://img.shields.io/github/forks/prazwal-bns/DocBook?style=flat-square&labelColor=black&color=green)
+
+<p>
+  <img src="https://www.romanianstartups.com/wp-content/uploads/2019/12/docbook-logo.png" alt="DocBook Logo" width="300">
 </p>
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Database Schema
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. Users Table
+This table stores general information for all users (patients, doctors, and admins).
 
-## Learning Laravel
+| Column Name | Data Type          | Description                                     |
+|-------------|--------------------|-------------------------------------------------|
+| `user_id`   | INT (PK)           | Primary key, unique ID for each user.           |
+| `username`  | VARCHAR(100)       | User's name.                                    |
+| `email`     | VARCHAR(100)       | Email address, unique for each user.            |
+| `password`  | VARCHAR(255)       | Hashed password.                                |
+| `role`      | ENUM('patient', 'doctor', 'admin') | User role.                              |
+| `created_at`| TIMESTAMP          | Record creation timestamp.                      |
+| `updated_at`| TIMESTAMP          | Record update timestamp.                        |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 2. Patients Table
+This table stores additional details specific to patients.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Column Name     | Data Type    | Description                                      |
+|------------------|-------------|--------------------------------------------------|
+| `patient_id`     | INT (PK, FK)| References `user_id` from the Users table.       |
+| `date_of_birth`  | DATE        | Patient's date of birth.                         |
+| `contact_number` | VARCHAR(15) | Patient's contact number.                        |
+| `address`        | TEXT        | Patient's address.                               |
+| `created_at`     | TIMESTAMP   | Record creation timestamp.                       |
+| `updated_at`     | TIMESTAMP   | Record update timestamp.                         |
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 3. Doctors Table
+This table stores additional details specific to doctors.
 
-### Premium Partners
+| Column Name      | Data Type    | Description                                      |
+|-------------------|-------------|--------------------------------------------------|
+| `doctor_id`       | INT (PK, FK)| References `user_id` from the Users table.       |
+| `specialization_id`| INT (FK)   | References `specialization_id` from Specializations. |
+| `contact_number`  | VARCHAR(15) | Doctor's contact number.                         |
+| `availability`    | BOOLEAN     | Indicates if the doctor is currently available.  |
+| `free_time`       | VARCHAR(50) | Free time slots (e.g., '10 AM - 12 PM').         |
+| `created_at`      | TIMESTAMP   | Record creation timestamp.                       |
+| `updated_at`      | TIMESTAMP   | Record update timestamp.                         |
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+---
 
-## Contributing
+### 4. Appointments Table
+This table stores the appointments booked by patients with doctors.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Column Name        | Data Type           | Description                                   |
+|---------------------|---------------------|-----------------------------------------------|
+| `appointment_id`    | INT (PK)           | Primary key, unique ID for each appointment.  |
+| `patient_id`        | INT (FK)           | References `patient_id` from the Patients table. |
+| `doctor_id`         | INT (FK)           | References `doctor_id` from the Doctors table. |
+| `appointment_date`  | DATE               | Date of the appointment.                      |
+| `appointment_time`  | TIME               | Time of the appointment.                      |
+| `status`            | ENUM('booked', 'completed', 'cancelled') | Appointment status. |
+| `created_at`        | TIMESTAMP          | Record creation timestamp.                    |
+| `updated_at`        | TIMESTAMP          | Record update timestamp.                      |
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 5. Specializations Table
+This table lists the specializations available for doctors.
 
-## Security Vulnerabilities
+| Column Name        | Data Type    | Description                                    |
+|---------------------|-------------|------------------------------------------------|
+| `specialization_id` | INT (PK)    | Primary key, unique ID for each specialization.|
+| `specialization_name`| VARCHAR(100)| Name of the specialization (e.g., Cardiologist).|
+| `created_at`        | TIMESTAMP   | Record creation timestamp.                     |
+| `updated_at`        | TIMESTAMP   | Record update timestamp.                       |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## Relationships
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Users ↔ Patients**: `user_id` in Users is referenced as `patient_id` in Patients.
+2. **Users ↔ Doctors**: `user_id` in Users is referenced as `doctor_id` in Doctors.
+3. **Doctors ↔ Specializations**: `specialization_id` in Specializations is referenced in Doctors.
+4. **Appointments ↔ Patients and Doctors**: `patient_id` references Patients, and `doctor_id` references Doctors.
+
+---
+
+## Features
+- Patients can view available doctors, book appointments, and view doctor details.
+- Doctors can manage schedules, mark availability, and view patient details for diagnosis.
+- Admins can verify doctors and oversee the entire system.
+
+---
+
+## Class Diagram
+<img src="https://github.com/user-attachments/assets/0019be7c-4dd5-4770-bcef-3b8e030a46cd" height="500">
+
+
+
+### Contributions
+Feel free to contribute to this project by submitting issues or pull requests. 😊
