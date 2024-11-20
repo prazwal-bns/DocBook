@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Specialization::class)->constrained()->cascadeOnDelete();
             $table->enum('status',['available','not_available'])->default('available');
-            $table->text('bio');
+            $table->text('bio')->nullable();
             $table->timestamps();
         });
     }

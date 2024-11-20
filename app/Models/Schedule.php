@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Schedule extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'doctor_id',
+        'day',
+        'start_time',
+        'end_time',
+    ];
 
     public function doctor(){
         return $this->belongsTo(Doctor::class);
