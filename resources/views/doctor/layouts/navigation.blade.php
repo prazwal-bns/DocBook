@@ -13,14 +13,20 @@
 
             <!-- Profile Link -->
             <a href="{{ route('doctor.profile') }}"
-                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 {{ request()->routeIs('patient.profile') ? 'font-bold border-b-4 border-yellow-300' : '' }} hover:border-b-2 hover:border-yellow-300">
+                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 {{ request()->routeIs('doctor.profile') ? 'font-bold border-b-4 border-yellow-300' : '' }} hover:border-b-2 hover:border-yellow-300">
                 Profile
+            </a>
+
+            <!-- Schedule Link -->
+            <a href="{{ route('view.schedule') }}"
+                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 {{ request()->routeIs('view.schedule') ? 'font-bold border-b-4 border-yellow-300' : '' }} hover:border-b-2 hover:border-yellow-300">
+                My Schedule
             </a>
 
             <!-- Appointments Link -->
             <a href="#"
                 class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 hover:border-b-2 hover:border-yellow-300">
-                Make Appointment
+                View Appointments
             </a>
 
             <!-- Logout Form -->

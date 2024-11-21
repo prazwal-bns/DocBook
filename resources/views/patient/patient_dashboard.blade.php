@@ -17,8 +17,10 @@
   <!-- Main Content -->
     @yield('content')
 
+
+
   <!-- Footer -->
   @include('footer')
-
 </body>
+
 </html>

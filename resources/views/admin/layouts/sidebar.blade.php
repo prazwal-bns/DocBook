@@ -33,13 +33,13 @@
             <span>Manage Doctors</span>
         </a>
 
-        <!-- Reports Link -->
-        <a href="" class="flex items-center space-x-2 text-gray-300 hover:text-yellow-300 hover:bg-gray-700 p-2 rounded-lg transition-all duration-300
-                {{ request()->routeIs('admin.users') ? 'font-bold text-yellow-400 bg-gray-700' : '' }}">
+        <!-- Specialization Link -->
+        <a href="{{ route('view.specializations') }}" class="flex items-center space-x-2 text-gray-300 hover:text-yellow-300 hover:bg-gray-700 p-2 rounded-lg transition-all duration-300
+                {{ request()->routeIs('view.specializations') ? 'font-bold text-yellow-400 bg-gray-700' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M5 3H4a1 1 0 00-1 1v12a1 1 0 001 1h1a1 1 0 001-1V4a1 1 0 00-1-1zM9 4a1 1 0 011 1v11a1 1 0 01-1 1H8a1 1 0 01-1-1V5a1 1 0 011-1h1zM13 5a1 1 0 011 1v10a1 1 0 01-1 1h-1a1 1 0 01-1-1V6a1 1 0 011-1h1z" clip-rule="evenodd" />
             </svg>
-            <span>Manage Users</span>
+            <span>Manage Specialization</span>
         </a>
 
         <!-- Logout Option -->
