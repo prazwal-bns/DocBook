@@ -68,6 +68,12 @@ Route::middleware(['auth', 'role.redirect:patient'])->group(function () {
 
     Route::get('/view/my/appointment',  [AppointmentController::class, 'viewMyAppointment'])->name('view.my.appointment');
 
+    Route::get('view/appointment/details/{id}', [AppointmentController::class, 'viewMyAppointmentDetails'])->name('view.appointment.details');
+
+    Route::get('edit/myappointment/date/{appointmentId}', [AppointmentController::class, 'editMyAppointmentDate'])->name('edit.myAppoinment.date');
+
+    Route::put('update/my/appointment/{appointmentId}',[AppointmentController::class, 'updateMyAppointment'])->name('update.my.appointment');
+
 });
 
 
@@ -89,6 +95,15 @@ Route::middleware(['auth', 'role.redirect:doctor'])->group(function () {
     Route::put('/update/schedule/{id}', [ScheduleController::class, 'updateSchedule'])->name('update.schedule');
 
     Route::delete('/delete/schedule/{doctorId}', [ScheduleController::class, 'deleteSchedule'])->name('delete.schedule');
+
+    Route::get('/view/doctor/appointments', [AppointmentController::class, 'viewDoctorAppointments'])->name('view.doctor.appointments');
+
+    Route::get('/appointments/{id}/edit', [AppointmentController::class, 'editPatientAppointment'])->name('edit.patient.appointment');
+    Route::put('update/patient/appointment/{id}', [AppointmentController::class, 'updatePatientAppointment'])->name('update.patient.appointment');
+
+    Route::get('viewA/doctor/appointment/{id}', [AppointmentController::class, 'viewADoctorAppointment'])->name('view.a.doctor.appointment');
+
+    Route::put('setup/status/{userId}', [DoctorController::class, 'setUpStatus'])->name('setup.status');
 
 });
 

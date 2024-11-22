@@ -17,4 +17,10 @@ class Schedule extends Model
     public function doctor(){
         return $this->belongsTo(Doctor::class);
     }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class, 'schedule_id'); // Replace 'schedule_id' if the foreign key is named differently.
+    }
+
 }

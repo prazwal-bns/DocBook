@@ -13,6 +13,7 @@ class Appointment extends Model
         'status',
         'start_time',
         'end_time',
+        'day'
     ];
 
     public function doctor(){

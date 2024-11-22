@@ -1,5 +1,5 @@
 <!-- Footer -->
-<footer class="bottom-0 left-0 right-0 py-8 mt-12 text-white bg-gradient-to-r from-blue-600 to-teal-600">
+<footer class="py-8 mt-12 text-white bg-gradient-to-r from-blue-600 to-teal-600">
     <div class="container mx-auto text-center">
         <!-- Footer Main Content -->
         <p class="mb-2 text-lg font-semibold">&copy; 2024 Doctor Appointment Application - DocBook</p>

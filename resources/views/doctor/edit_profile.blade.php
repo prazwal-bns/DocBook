@@ -10,7 +10,7 @@
                 <!-- Doctor Profile Edit Form in Card -->
                 <div class="w-1/2">
                     <div class="p-6 bg-white rounded-lg shadow-lg">
-                        <h3 class="mb-4 text-xl font-semibold text-gray-800">User Information</h3>
+                        <h3 class="mb-4 text-xl font-semibold text-gray-800">Doctor Information</h3>
                         <form action="{{ route('doctor.update.profile') }}" method="POST">
                             @csrf
                             @method('PUT')
@@ -18,7 +18,7 @@
                             <!-- User Information -->
                             <div class="mb-4">
                                 <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                                <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <input type="text" required id="name" name="name" value="{{ old('name', $user->name) }}" class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 @if($errors->has('name'))
                                     <p class="mt-2 text-sm text-red-600">{{ $errors->first('name') }}</p>
                                 @endif
@@ -26,7 +26,7 @@
 
                             <div class="mb-4">
                                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <input type="email" required id="email" name="email" value="{{ old('email', $user->email) }}" class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 @if($errors->has('email'))
                                     <p class="mt-2 text-sm text-red-600">{{ $errors->first('email') }}</p>
                                 @endif
@@ -48,25 +48,27 @@
                                 @endif
                             </div>
 
-                            <!-- Doctor Information -->
-                            <h3 class="mt-6 text-xl font-semibold text-gray-800">Doctor Information</h3>
-
                             <div class="mb-4">
                                 <label for="specialization" class="block text-sm font-medium text-gray-700">Specialization</label>
-                                <input type="text" name="specialization_id" value="{{ $doctor->specialization ? $doctor->specialization->name : 'Not Selected' }}" class="block w-full px-4 py-2 mt-1 text-gray-600 bg-gray-100 border border-gray-300 rounded-md" readonly>
+                                <input required type="text" name="specialization_id" value="{{ $doctor->specialization ? $doctor->specialization->name : 'Not Selected' }}" class="block w-full px-4 py-2 mt-1 text-gray-600 bg-gray-100 border border-gray-300 rounded-md" readonly>
                             </div>
 
-                            {{-- Doctor Status --}}
-                            <div class="mb-4">
-                                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                                <select id="status" name="status" class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="available" {{ old('status', $doctor->status) == 'available' ? 'selected' : '' }}>Available</option>
-                                    <option value="not_available" {{ old('status', $doctor->status) == 'not_available' ? 'selected' : '' }}>Unavailable</option>
-                                </select>
-                                @if($errors->has('status'))
-                                    <p class="mt-2 text-sm text-red-600">{{ $errors->first('status') }}</p>
-                                @endif
-                            </div>
+                            @if($doctor->schedules->isNotEmpty())
+                                <div class="mb-4">
+                                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                                    <select id="status" name="status"
+                                            class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            {{ $doctor->schedules->isEmpty() ? 'disabled' : '' }}>
+                                        <option value="available" {{ old('status', $doctor->status) == 'available' ? 'selected' : '' }}>Available</option>
+                                        <option value="not_available" {{ old('status', $doctor->status) == 'not_available' ? 'selected' : '' }}>Unavailable</option>
+                                    </select>
+                                    @if($errors->has('status'))
+                                        <p class="mt-2 text-sm text-red-600">{{ $errors->first('status') }}</p>
+                                    @endif
+                                </div>
+                            @else
+
+                            @endif
 
                             <div class="mb-4">
                                 <label for="bio" class="block text-sm font-medium text-gray-700">Biography</label>
@@ -94,7 +96,7 @@
 
                             <div class="mb-4">
                                 <label for="current_password" class="block text-sm font-medium text-gray-700">Current Password</label>
-                                <input type="password" id="current_password" name="current_password" class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <input type="password" id="current_password" name="current_password" class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                                 @if($errors->has('current_password'))
                                     <p class="mt-2 text-sm text-red-600">{{ $errors->first('current_password') }}</p>
                                 @endif
@@ -102,7 +104,7 @@
 
                             <div class="mb-4">
                                 <label for="new_password" class="block text-sm font-medium text-gray-700">New Password</label>
-                                <input type="password" id="new_password" name="new_password"  class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <input type="password" id="new_password" name="new_password"  class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                                 @if($errors->has('new_password'))
                                     <p class="mt-2 text-sm text-red-600">{{ $errors->first('new_password') }}</p>
                                 @endif
@@ -110,7 +112,7 @@
 
                             <div class="mb-4">
                                 <label for="new_password_confirmation" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
-                                <input type="password" id="new_password_confirmation" name="new_password_confirmation"  class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                <input type="password" id="new_password_confirmation" name="new_password_confirmation"  class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
                                 @if($errors->has('new_password_confirmation'))
                                     <p class="mt-2 text-sm text-red-600">{{ $errors->first('new_password_confirmation') }}</p>
                                 @endif

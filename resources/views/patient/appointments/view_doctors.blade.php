@@ -4,7 +4,7 @@
     <h1 class="mb-4 text-xl font-bold text-gray-700">Doctors Specializing in {{ $specialization->name }}</h1>
 
     @if($doctors->isEmpty())
-        <p class="text-gray-600 min-h-60">No doctors are available for this specialization at the moment.</p>
+        <p class="text-red-600 min-h-60">No doctors are available for this specialization at the moment.</p>
     @else
         <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             @foreach($doctors as $doctor)

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AppointmentRequest;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
+use App\Models\Schedule;
 use App\Models\Specialization;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AppointmentController extends Controller
 {
@@ -36,27 +39,20 @@ class AppointmentController extends Controller
     }
     // end function
 
-    public function storeAppointment(Request $request){
-        // Validate the incoming request data
-        $validated = $request->validate([
-            'appointment_date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'doctor_id' => 'required|exists:doctors,id',
-        ]);
+    public function storeAppointment(AppointmentRequest $request){
+        $validated = $request->validated();
+        $day = Carbon::parse($validated['appointment_date'])->format('l');
+        $validated['day'] = $day;
 
-        // Retrieve the doctor by ID
         $doctor = Doctor::findOrFail($validated['doctor_id']);
 
-        // Check if the doctor is available
         if ($doctor->status === 'not_available') {
             return back()->with('error', 'The selected doctor is currently not available for appointments.');
         }
 
-        // Get the day of the week from the selected appointment date
-        $dayOfWeek = Carbon::parse($validated['appointment_date'])->format('l'); // e.g., 'Monday'
+        // retrive day of appointment for eg: 'Monday'
+        $dayOfWeek = Carbon::parse($validated['appointment_date'])->format('l');
 
-        // Find the doctor's schedule for the selected day
         $schedule = $doctor->schedules()->where('day', $dayOfWeek)->first();
 
         // Check if the schedule exists and is available
@@ -81,20 +77,6 @@ class AppointmentController extends Controller
             return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
         }
 
-        // Check for overlapping appointments
-        $overlappingAppointments = Appointment::where('doctor_id', $doctor->id)
-            ->where('appointment_date', $validated['appointment_date'])
-            ->where(function ($query) use ($appointmentStart, $appointmentEnd) {
-                $query->where(function ($q) use ($appointmentStart, $appointmentEnd) {
-                    $q->where('start_time', '<', $appointmentEnd) // Starts before new appointment ends
-                    ->where('end_time', '>', $appointmentStart); // Ends after new appointment starts
-                });
-            })
-            ->exists();
-
-        if ($overlappingAppointments) {
-            return back()->with('error', 'The selected time overlaps with another appointment. Please choose a different time.');
-        }
 
         // All checks passed; create the appointment
         Appointment::create([
@@ -104,11 +86,11 @@ class AppointmentController extends Controller
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
             'status' => 'pending',
+            'day' => $validated['day']
         ]);
 
-        return redirect()->route('patient.dashboard')->with('success', 'Appointment booked successfully!');
+        return redirect()->route('view.my.appointment')->with('success', 'Appointment booked successfully!');
     }
-
 
     // end function
 
@@ -117,7 +99,156 @@ class AppointmentController extends Controller
         $patientId = Patient::where('user_id', $userId)->value('id');
         $appointmentData = Appointment::where('patient_id',$patientId)->get();
 
+
         return view('patient.appointments.view_my_appointments', compact('appointmentData'));
+    }
+    // end function
+
+    public function viewDoctorAppointments(){
+        $userId = Auth::user()->id;
+        $doctorId = Doctor::where('user_id',$userId)->value('id');
+
+        $schedules = Schedule::where('doctor_id',$doctorId)->get();
+        $appointmentData = Appointment::where('doctor_id', $doctorId)->get();
+
+        return view('doctor.appointments.view_doctors_appointments', compact('appointmentData','schedules'));
+    }
+    // end function
+
+    public function editPatientAppointment($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+
+        // Fetch the doctor's record for the authenticated user
+        $doctor = auth()->user()->doctor;
+
+        // Check if the authenticated user is the doctor associated with the appointment
+        if (!$doctor || $appointment->doctor_id !== $doctor->id) {
+            abort(403, 'You are not authorized to edit this appointment.');
+        }
+
+        if ($appointment->status === 'completed') {
+            abort(403, 'This appointment is already completed and cannot be edited.');
+        }
+
+        return view('doctor.appointments.edit_patient_appointment', compact('appointment'));
+    }
+    // end function
+
+    public function updatePatientAppointment(Request $request, $id){
+        $validated = $request->validate([
+            'status' => 'required|in:pending,confirmed,completed,cancelled'
+        ]);
+
+        $appointment = Appointment::findOrFail($id);
+        $appointment->update($validated);
+
+        return redirect()->route('view.doctor.appointments')->with('success','Appointment status Updated Successfully !!');
+    }
+    // end function
+
+    public function viewADoctorAppointment($id){
+        $appointment = Appointment::findOrFail($id);
+
+        $doctor = auth()->user()->doctor;
+
+        // Check if the authenticated user is the doctor associated with the appointment
+        if (!$doctor || $appointment->doctor_id !== $doctor->id) {
+            abort(403, 'You are not authorized to view this appointment details.');
+        }
+
+        return view('doctor.appointments.view_a_patient_appointment', compact('appointment'));
+    }
+    // end function
+
+    public function viewMyAppointmentDetails($id){
+        $appointment = Appointment::findOrFail($id);
+        $patient = auth()->user()->patient;
+
+        if(!$patient || $appointment->patient_id !== $patient->id){
+            abort(403, 'You are not authorized to view this appointment details.');
+        }
+
+        return view('patient.appointments.view_my_appointment_details', compact('appointment'));
+    }
+    // end function
+
+    public function editMyAppointmentDate($appointmentId){
+        $appointment = Appointment::findOrFail($appointmentId);
+        $patient = auth()->user()->patient;
+
+        if(!$patient || $appointment->patient_id !== $patient->id){
+            abort(403, 'You are not authorized to edit this appointment.');
+        }
+
+        if ($appointment->status !== 'pending') {
+            abort(403, 'This appointment is already confirmed and cannot be edited.');
+        }
+
+        return view('patient.appointments.edit_appointment_date', compact('appointment'));
+    }
+    // end function
+
+    public function updateMyAppointment(AppointmentRequest $request, $appointmentId){
+        // Step 1: Validate the request
+        $validated = $request->validated();
+        $day = Carbon::parse($validated['appointment_date'])->format('l');
+        $validated['day'] = $day;
+
+        // Step 2: Retrieve the appointment and check ownership
+        $appointment = Appointment::findOrFail($appointmentId);
+        $patient = auth()->user()->patient;
+
+        if (!$patient || $appointment->patient_id !== $patient->id) {
+            abort(403, 'You are not authorized to edit this appointment.');
+        }
+
+        // Ensure the appointment status is 'pending'
+        if ($appointment->status !== 'pending') {
+            abort(403, 'This appointment is already confirmed and cannot be edited.');
+        }
+
+        // Step 3: Retrieve the doctor and check availability
+        $doctor = Doctor::findOrFail($validated['doctor_id']);
+        if ($doctor->status === 'not_available') {
+            return back()->with('error', 'The selected doctor is currently not available for appointments.');
+        }
+
+        // Step 4: Check if the doctor has a schedule for the selected day
+        $dayOfWeek = Carbon::parse($validated['appointment_date'])->format('l');
+        $schedule = $doctor->schedules()->where('day', $dayOfWeek)->first();
+
+        if (!$schedule) {
+            return back()->with('error', 'The doctor does not have a schedule for the selected day.');
+        }
+
+        // Step 5: Ensure the doctor is available on the selected day
+        if ($schedule->status !== 'available') {
+            return back()->with('error', 'The doctor is currently not available on the selected day.');
+        }
+
+        // Step 6: Check if the new appointment times fit within the doctor's available schedule
+        $appointmentStart = Carbon::parse($validated['start_time']);
+        $appointmentEnd = Carbon::parse($validated['end_time']);
+
+        $scheduleStart = Carbon::parse($schedule->start_time);
+        $scheduleEnd = Carbon::parse($schedule->end_time);
+
+        if (!$appointmentStart->between($scheduleStart, $scheduleEnd, true) ||
+            !$appointmentEnd->between($scheduleStart, $scheduleEnd, true)) {
+            return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
+        }
+
+        // Step 7: Update the appointment
+        $appointment->update([
+            'appointment_date' => $validated['appointment_date'],
+            'start_time' => $validated['start_time'],
+            'end_time' => $validated['end_time'],
+            'day' => $validated['day']
+        ]);
+
+        // Step 8: Redirect back with success message
+        return redirect()->route('view.my.appointment')->with('success', 'Appointment updated successfully!');
     }
 
 }

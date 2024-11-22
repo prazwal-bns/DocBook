@@ -77,4 +77,26 @@ class DoctorController extends Controller
             return back()->withErrors(['current_password' => 'The current password is incorrect.']);
         }
     }
+    // end function
+
+    public function setUpStatus(Request $request, $userId){
+        // Validate the request
+        $validatedData = $request->validate([
+            'status' => 'required|in:available,not_available',
+        ]);
+
+        // Get the doctor
+        $doctor = Doctor::where('user_id', $userId)->first();
+
+        // Update the doctor's status
+        if ($doctor) {
+            $doctor->update([
+                'status' => $validatedData['status']
+            ]);
+        }
+
+        // Redirect back with success message
+        return redirect()->route('doctor.dashboard')->with('success', 'Status Updated Successfully!');
+    }
+
 }

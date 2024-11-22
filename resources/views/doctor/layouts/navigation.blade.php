@@ -24,9 +24,9 @@
             </a>
 
             <!-- Appointments Link -->
-            <a href="#"
-                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 hover:border-b-2 hover:border-yellow-300">
-                View Appointments
+            <a href="{{ route('view.doctor.appointments') }}"
+                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 hover:border-b-2 hover:border-yellow-300 {{ request()->routeIs('view.doctor.appointments') ? 'font-bold border-b-4 border-yellow-300' : '' }}">
+                View My Appointments
             </a>
 
             <!-- Logout Form -->

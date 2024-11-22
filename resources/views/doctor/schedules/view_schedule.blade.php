@@ -55,8 +55,7 @@
                 </tbody>
             </table>
             <div class="mt-4">
-                {{-- <form action="{{ route('delete.schedule', $doctor->id) }}" method="POST"> --}}
-                <form action="" method="POST">
+                <form action="{{ route('delete.schedule', $doctor->id) }}" method="POST">
                    @csrf
                    @method('DELETE')
                    <button class="inline-block px-6 py-4 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
@@ -68,8 +67,8 @@
         @else
             <!-- No schedules found message -->
             <div class="mt-6 text-center text-gray-600">
-                <p class="text-lg font-semibold text-red-600">No Schedule Found</p>
-                <p class="text-sm">It looks like you have no schedule.</p>
+                <p class="text-3xl font-semibold text-red-700">No Schedule Found</p>
+                <p class="mt-4 text-sm">It looks like you have no schedule.</p>
 
                 <!-- Button to Add Schedule -->
                 <div class="mt-4">
