@@ -10,8 +10,10 @@ use App\Models\Schedule;
 use App\Models\Specialization;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class AppointmentController extends Controller
 {
@@ -135,16 +137,45 @@ class AppointmentController extends Controller
     }
     // end function
 
+    // public function updatePatientAppointment(Request $request, $id){
+    //     $validated = $request->validate([
+    //         'status' => 'required|in:pending,confirmed,completed,cancelled'
+    //     ]);
+
+    //     $appointment = Appointment::findOrFail($id);
+    //     $appointment->update($validated);
+
+    //     return redirect()->route('view.doctor.appointments')->with('success','Appointment status Updated Successfully !!');
+    // }
     public function updatePatientAppointment(Request $request, $id){
-        $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed,cancelled'
+        $validatedData = $request->validate([
+            'status' => 'required|in:pending,confirmed,completed',
         ]);
 
         $appointment = Appointment::findOrFail($id);
-        $appointment->update($validated);
+        $validTransitions = [
+            'pending' => ['confirmed'],        // From pending, you can only move to confirmed
+            'confirmed' => ['completed'],     // From confirmed, you can only move to completed
+            'completed' => [],                // From completed, no transitions allowed
+        ];
 
-        return redirect()->route('view.doctor.appointments')->with('success','Appointment status Updated Successfully !!');
+        $currentStatus = $appointment->status;
+        $newStatus = $validatedData['status'];
+
+        // Check if the transition is valid
+        if (!in_array($newStatus, $validTransitions[$currentStatus])) {
+            return redirect()->back()->withErrors([
+                'status' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
+            ]);
+        }
+
+        // Update the status
+        $appointment->status = $newStatus;
+        $appointment->save();
+
+        return redirect()->route('view.doctor.appointments')->with('success', 'Appointment status updated successfully.');
     }
+
     // end function
 
     public function viewADoctorAppointment($id){
@@ -176,6 +207,8 @@ class AppointmentController extends Controller
     public function editMyAppointmentDate($appointmentId){
         $appointment = Appointment::findOrFail($appointmentId);
         $patient = auth()->user()->patient;
+
+        Gate::authorize('update',$appointment);
 
         if(!$patient || $appointment->patient_id !== $patient->id){
             abort(403, 'You are not authorized to edit this appointment.');
@@ -250,5 +283,23 @@ class AppointmentController extends Controller
         // Step 8: Redirect back with success message
         return redirect()->route('view.my.appointment')->with('success', 'Appointment updated successfully!');
     }
+    // end function
 
+    public function deleteMyAppointment($appointmentId){
+        $appointment = Appointment::findOrFail($appointmentId);
+        Gate::authorize('delete',$appointment);
+        $patient = auth()->user()->patient;
+
+
+        if (!$patient || $appointment->patient_id !== $patient->id) {
+            abort(403, 'You are not authorized to delete this appointment.');
+        }
+
+        if($appointment->status !== 'pending'){
+            abort(403, 'This appointment is already confirmed and cannot be edited.');
+        }
+
+        $appointment->delete();
+        return redirect()->route('view.my.appointment')->with('success', 'Appointment Deleted successfully!');
+    }
 }

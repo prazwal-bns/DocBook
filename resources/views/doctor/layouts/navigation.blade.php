@@ -1,6 +1,6 @@
 <nav class="p-4 shadow-lg bg-gradient-to-r from-blue-800 to-teal-600">
     <div class="container flex items-center justify-between mx-auto">
-        <div class="text-2xl font-semibold text-white">Doctor Dashboard</div>
+        <div class="text-2xl font-semibold text-white">{{ auth()->user()->name }}'s Dashboard</div>
         <div class="flex items-center space-x-6">
 
             <!-- Home Link -->
@@ -19,15 +19,19 @@
 
             <!-- Schedule Link -->
             <a href="{{ route('view.schedule') }}"
-                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 {{ request()->routeIs('view.schedule') ? 'font-bold border-b-4 border-yellow-300' : '' }} hover:border-b-2 hover:border-yellow-300">
+                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300
+                {{ request()->routeIs('view.schedule', 'edit.schedule', 'add.schedule') ? 'font-bold border-b-4 border-yellow-300' : '' }} hover:border-b-2 hover:border-yellow-300">
                 My Schedule
             </a>
 
+
             <!-- Appointments Link -->
             <a href="{{ route('view.doctor.appointments') }}"
-                class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 hover:border-b-2 hover:border-yellow-300 {{ request()->routeIs('view.doctor.appointments') ? 'font-bold border-b-4 border-yellow-300' : '' }}">
-                View My Appointments
-            </a>
+            class="px-4 py-2 text-white transition-all duration-300 rounded hover:text-yellow-300 hover:border-b-2 hover:border-yellow-300
+            {{ request()->routeIs('view.doctor.appointments', 'edit.patient.appointment', 'view.a.doctor.appointment', 'give.patient.review', 'view.patient.review', 'edit.status') ? 'font-bold border-b-4 border-yellow-300' : '' }}">
+             My Appointments
+        </a>
+
 
             <!-- Logout Form -->
             <form action="{{ route('logout') }}" method="POST">

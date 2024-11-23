@@ -5,6 +5,7 @@
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- Left: Doctor's Schedule -->
+       @if ($doctor->schedules->isNotEmpty())
         <div class="p-4 rounded-lg shadow-md bg-gray-50">
             <h3 class="mb-6 text-xl font-semibold text-gray-800">Dr. {{ $doctor->user->name }}'s Schedule</h3>
             <ul class="space-y-1">
@@ -39,8 +40,6 @@
                 @endforeach
             </ul>
         </div>
-
-
         <!-- Right: Appointment Form -->
         <div>
             <h2 class="mb-4 text-xl font-bold text-gray-700">Book an Appointment with Dr. {{ $doctor->user->name }}</h2>
@@ -74,8 +73,8 @@
                 <!-- Doctor's Profile Image Placeholder -->
                 <div class="w-40 h-40 mb-3 overflow-hidden bg-gray-200 rounded-full">
                     <img src="https://static.vecteezy.com/system/resources/previews/015/412/022/non_2x/doctor-round-avatar-medicine-flat-avatar-with-male-doctor-medical-clinic-team-round-icon-medical-collection-illustration-vector.jpg"
-                         alt="{{ $doctor->user->name }}"
-                         class="object-cover w-full h-full">
+                            alt="{{ $doctor->user->name }}"
+                            class="object-cover w-full h-full">
                 </div>
 
                 <h2 class="text-2xl font-semibold text-gray-700">{{ $doctor->user->name }}</h2>
@@ -111,8 +110,8 @@
                     <div class="mb-4">
                         <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
                         <input type="time" name="start_time" id="start_time"
-                               class="block w-full mt-2  rounded-lg @error('start_time') border-red-500 @enderror"
-                               value="{{ old('start_time') }}" required>
+                                class="block w-full mt-2  rounded-lg @error('start_time') border-red-500 @enderror"
+                                value="{{ old('start_time') }}" required>
 
                         @error('start_time')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -123,8 +122,8 @@
                     <div class="mb-4">
                         <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
                         <input type="time" name="end_time" id="end_time"
-                               class="block w-full mt-2  rounded-lg @error('end_time') border-red-500 @enderror"
-                               value="{{ old('end_time') }}" required>
+                                class="block w-full mt-2  rounded-lg @error('end_time') border-red-500 @enderror"
+                                value="{{ old('end_time') }}" required>
 
                         @error('end_time')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -140,6 +139,12 @@
                 </div>
             </form>
         </div>
+       @else
+        <div class="p-6 mt-4 font-semibold text-red-700 bg-blue-50">
+            <p>This doctor is not available at the moment.</p>
+        </div>
+       @endif
+
     </div>
 </div>
 @endsection

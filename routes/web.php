@@ -5,6 +5,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SpecializationController;
 use Illuminate\Support\Facades\Route;
@@ -74,6 +75,11 @@ Route::middleware(['auth', 'role.redirect:patient'])->group(function () {
 
     Route::put('update/my/appointment/{appointmentId}',[AppointmentController::class, 'updateMyAppointment'])->name('update.my.appointment');
 
+    Route::delete('delete/myAppointment/{appointmentId}',[AppointmentController::class, 'deleteMyAppointment'])->name('delete.myAppoinment');
+
+    Route::get('view/doctor/review/{appointmentId}', [ReviewController::class, 'viewDoctorReview'])->name('view.doctor.review');
+
+
 });
 
 
@@ -104,6 +110,12 @@ Route::middleware(['auth', 'role.redirect:doctor'])->group(function () {
     Route::get('viewA/doctor/appointment/{id}', [AppointmentController::class, 'viewADoctorAppointment'])->name('view.a.doctor.appointment');
 
     Route::put('setup/status/{userId}', [DoctorController::class, 'setUpStatus'])->name('setup.status');
+
+    Route::get('give/patient/review/{appointmentId}', [ReviewController::class, 'giveReviewToPatient'])->name('give.patient.review');
+
+    Route::post('store/patient/review/{appointmentId}', [ReviewController::class, 'storeReview'])->name('store.patientReview');
+
+    Route::get('view/patient/review/{appointmentId}', [ReviewController::class, 'viewYourReview'])->name('view.patient.review');
 
 });
 

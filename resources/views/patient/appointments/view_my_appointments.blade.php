@@ -63,14 +63,31 @@
                             @if ($appointment->doctor->status == 'not_available')
                                 <p class="font-bold text-red-700">Dr. {{ $appointment->doctor->user->name }} is currently unavailable.</p>
                             @else
+                            <div class="flex space-x-4">
                                 <a href="{{ route('view.appointment.details',$appointment->id) }}" class="inline-block px-4 py-2 ml-4 text-sm font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
                                     View Appointment
                                 </a>
                                 @if ($appointment->status === 'pending')
-                                    <a href="{{ route('edit.myAppoinment.date', $appointment->id) }}" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 bg-purple-600 rounded shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">
-                                        Edit Appointment
+                                    <a href="{{ route('edit.myAppoinment.date', $appointment->id) }}"
+                                       class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 bg-purple-600 rounded shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">
+                                        Edit
+                                    </a>
+                                    <form action="{{ route('delete.myAppoinment', $appointment->id) }}" method="POST"
+                                        onsubmit="return confirm('Are you sure you want to delete this appointment?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 bg-red-600 rounded shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                                            Delete
+                                        </button>
+                                    </form>
+                                @endif
+                                @if ($appointment->status === 'completed')
+                                    <a href="{{ route('view.doctor.review', $appointment->id) }}" class="inline-block px-4 py-2 ml-4 text-sm font-semibold text-white bg-gray-600 rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                                        View Doctor's Review
                                     </a>
                                 @endif
+                            </div>
                             @endif
                         </td>
                     </tr>

@@ -52,9 +52,9 @@
                             <td class="px-4 py-2">
                                 <span class="px-2 py-1 text-xs font-semibold text-white rounded
                                     {{ $appointment->status == 'pending' ? 'bg-amber-500' : '' }}
-                                    {{ $appointment->status == 'confirmed' ? 'bg-green-500' : '' }}
+                                    {{ $appointment->status == 'confirmed' ? 'bg-blue-500' : '' }}
                                     {{ $appointment->status == 'cancelled' ? 'bg-red-500' : '' }}
-                                    {{ $appointment->status == 'completed' ? 'bg-blue-500' : '' }}">
+                                    {{ $appointment->status == 'completed' ? 'bg-green-500' : '' }}">
                                     {{ ucfirst($appointment->status) }}
                                 </span>
 
@@ -73,14 +73,18 @@
                                     @endif
 
                                     @if ($appointment->status === 'completed')
-                                        <a href="#" class="inline-block px-4 py-2 ml-4 text-sm font-semibold text-white bg-gray-600 rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
-                                            Give Review
-                                        </a>
+                                        @if ($appointment->review()->doesntExist())
+                                            <a href="{{ route('give.patient.review', $appointment->id) }}" class="inline-block px-4 py-2 ml-4 text-sm font-semibold text-white bg-gray-600 rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+                                                Give Review
+                                            </a>
+                                        @else
+                                            <a href="{{ route('view.patient.review', $appointment->id) }}" class="inline-block px-4 py-2 ml-4 text-sm font-semibold text-white bg-purple-600 rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">
+                                                View Review
+                                            </a>
+                                        @endif
                                     @endif
+
                                 @endif
-
-
-
                             </td>
 
                         </tr>

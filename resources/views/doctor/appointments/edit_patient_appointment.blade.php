@@ -10,6 +10,13 @@
         </div>
     @endif
 
+        <!-- Error Message -->
+    @if ($errors->has('status'))
+        <div class="p-4 mb-4 text-sm font-medium text-red-700 bg-red-100 rounded-lg">
+            {{ $errors->first('status') }}
+        </div>
+    @endif
+
     <!-- Form to Edit Appointment Status -->
     <form action="{{ route('update.patient.appointment',$appointment->id) }}" method="POST">
         @csrf
