@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
     public function giveReviewToPatient($appointmentId){
         $appointment = Appointment::findOrFail($appointmentId);
 
-        $doctor = auth()->user()->doctor;
+        $doctor = Auth::user()->doctor;
 
         // Check if the authenticated user is the doctor associated with the appointment
         if (!$doctor || $appointment->doctor_id !== $doctor->id) {
@@ -57,6 +58,7 @@ class ReviewController extends Controller
 
     public function viewYourReview($appointmentId){
         $appointment = Appointment::findOrFail($appointmentId);
+
 
         return view('doctor.reviews.view_my_review', compact('appointment'));
     }

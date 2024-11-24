@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AppointmentRequest;
+use App\Mail\AppointmentSent;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
@@ -14,6 +15,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 
 class AppointmentController extends Controller
 {
@@ -37,6 +39,7 @@ class AppointmentController extends Controller
 
     public function bookAppointment($doctorId){
         $doctor = Doctor::findOrFail($doctorId);
+
         return view('patient.appointments.book_appointment',compact('doctor'));
     }
     // end function
@@ -81,7 +84,7 @@ class AppointmentController extends Controller
 
 
         // All checks passed; create the appointment
-        Appointment::create([
+        $appointment = Appointment::create([
             'patient_id' => Auth::user()->patient->id,
             'doctor_id' => $doctor->id,
             'appointment_date' => $validated['appointment_date'],
@@ -90,6 +93,9 @@ class AppointmentController extends Controller
             'status' => 'pending',
             'day' => $validated['day']
         ]);
+
+        $doctorEmail = $doctor->user->email;
+        Mail::to($doctorEmail)->send(new AppointmentSent($appointment));
 
         return redirect()->route('view.my.appointment')->with('success', 'Appointment booked successfully!');
     }
@@ -122,7 +128,7 @@ class AppointmentController extends Controller
         $appointment = Appointment::findOrFail($id);
 
         // Fetch the doctor's record for the authenticated user
-        $doctor = auth()->user()->doctor;
+        $doctor = Auth::user()->doctor;
 
         // Check if the authenticated user is the doctor associated with the appointment
         if (!$doctor || $appointment->doctor_id !== $doctor->id) {
@@ -181,7 +187,7 @@ class AppointmentController extends Controller
     public function viewADoctorAppointment($id){
         $appointment = Appointment::findOrFail($id);
 
-        $doctor = auth()->user()->doctor;
+        $doctor = Auth::user()->doctor;
 
         // Check if the authenticated user is the doctor associated with the appointment
         if (!$doctor || $appointment->doctor_id !== $doctor->id) {
@@ -194,7 +200,7 @@ class AppointmentController extends Controller
 
     public function viewMyAppointmentDetails($id){
         $appointment = Appointment::findOrFail($id);
-        $patient = auth()->user()->patient;
+        $patient = Auth::user()->patient;
 
         if(!$patient || $appointment->patient_id !== $patient->id){
             abort(403, 'You are not authorized to view this appointment details.');
@@ -206,7 +212,7 @@ class AppointmentController extends Controller
 
     public function editMyAppointmentDate($appointmentId){
         $appointment = Appointment::findOrFail($appointmentId);
-        $patient = auth()->user()->patient;
+        $patient = Auth::user()->patient;
 
         Gate::authorize('update',$appointment);
 
@@ -230,7 +236,7 @@ class AppointmentController extends Controller
 
         // Step 2: Retrieve the appointment and check ownership
         $appointment = Appointment::findOrFail($appointmentId);
-        $patient = auth()->user()->patient;
+        $patient = Auth::user()->patient;
 
         if (!$patient || $appointment->patient_id !== $patient->id) {
             abort(403, 'You are not authorized to edit this appointment.');
@@ -288,7 +294,7 @@ class AppointmentController extends Controller
     public function deleteMyAppointment($appointmentId){
         $appointment = Appointment::findOrFail($appointmentId);
         Gate::authorize('delete',$appointment);
-        $patient = auth()->user()->patient;
+        $patient = Auth::user()->patient;
 
 
         if (!$patient || $appointment->patient_id !== $patient->id) {
