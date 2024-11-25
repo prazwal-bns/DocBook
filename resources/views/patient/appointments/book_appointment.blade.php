@@ -5,7 +5,7 @@
 
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- Left: Doctor's Schedule -->
-       @if ($doctor->schedules->isNotEmpty())
+       @if ($doctor->schedules->isNotEmpty() && $doctor->status == 'available')
         <div class="p-4 rounded-lg shadow-md bg-gray-50">
             <h3 class="mb-6 text-xl font-semibold text-gray-800">Dr. {{ $doctor->user->name }}'s Schedule</h3>
             <ul class="space-y-1">
@@ -119,7 +119,7 @@
                     </div>
 
                     <!-- End Time -->
-                    <div class="mb-4">
+                    <div class="mb-2">
                         <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
                         <input type="time" name="end_time" id="end_time"
                                 class="block w-full mt-2  rounded-lg @error('end_time') border-red-500 @enderror"
@@ -129,6 +129,15 @@
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="appointment_reason" class="block mb-2 text-sm font-medium text-gray-700">Reason For Appointment:</label>
+                    <textarea id="appointment_reason" rows="5" name="appointment_reason"  class="block w-full px-4 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+
+                    @error('appointment_reason')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Submit Button -->

@@ -2,17 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\Specialization;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
-    public function adminDashboard(){
-        return view('admin.index');
+    public function adminDashboard()
+    {
+        // Example data queries (replace with actual models and logic)
+        $totalUsers = User::count(); // Count total users
+        $totalDoctors = Doctor::count(); // Count total doctors
+        $totalPatients = Patient::count(); // Count total patients
+        $pendingAppointments = Appointment::where('status', 'pending')->count();
+        $completedAppointments = Appointment::where('status', 'completed')->count();
+
+        // Pass data to the view
+        return view('admin.index', compact('totalUsers', 'totalDoctors', 'totalPatients', 'pendingAppointments','completedAppointments'));
     }
+
     // end function
 
     public function viewPatients(){

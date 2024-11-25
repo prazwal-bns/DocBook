@@ -25,6 +25,7 @@ class AppointmentRequest extends FormRequest
             'appointment_date' => 'required|date|after_or_equal:today',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
+            'appointment_reason' => 'nullable',
             'doctor_id' => [
                 'required',
                 'exists:doctors,id',

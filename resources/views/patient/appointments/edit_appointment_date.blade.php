@@ -32,8 +32,7 @@
                             <div class="flex-1">
                                 <strong class="text-lg font-medium text-gray-700">{{ ucfirst($schedule->day) }}:</strong>
                                 <div class="text-gray-600">
-                                    <span>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }} -
-                                    {{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</span>
+                                    <span>{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</span>
                                 </div>
                             </div>
                             <div class="flex items-center">
@@ -64,10 +63,24 @@
         @endif
 
         <!-- Right: Edit Appointment Form -->
-        <div class="w-full max-w-md">
+        <div>
             <h2 class="mb-6 text-2xl font-bold text-center text-gray-800">Edit Your Appointment with Dr. {{ $appointment->doctor->user->name }}</h2>
 
-            <form action="{{ route('update.my.appointment', $appointment->id) }}" method="POST">
+            <div class="flex flex-col items-center text-center">
+                <!-- Doctor's Profile Image Placeholder -->
+                <div class="w-40 h-40 mb-3 overflow-hidden bg-gray-200 rounded-full">
+                    <img src="https://static.vecteezy.com/system/resources/previews/015/412/022/non_2x/doctor-round-avatar-medicine-flat-avatar-with-male-doctor-medical-clinic-team-round-icon-medical-collection-illustration-vector.jpg"
+                            alt="{{ $appointment->doctor->user->name }}"
+                            class="object-cover w-full h-full">
+                </div>
+
+                <h2 class="text-2xl font-semibold text-gray-700">{{ $appointment->doctor->user->name }}</h2>
+                <p class="mt-2 text-sm text-gray-600">{{ $appointment->doctor->user->email }}</p>
+                <p class="mt-2 text-sm text-gray-600">Phone No: {{ $appointment->doctor->user->phone }}</p>
+
+            </div>
+
+            <form action="{{ route('update.my.appointment', $appointment->id) }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PUT')
 
@@ -75,29 +88,27 @@
                 <input type="hidden" name="doctor_id" value="{{ $appointment->doctor_id }}">
 
                 <!-- Date Picker -->
-                <div class="mb-6">
+                <div>
                     <label for="appointment_date" class="block text-sm font-medium text-gray-700">Select New Appointment Date</label>
                     <input type="date"
                         min="{{ date('Y-m-d') }}"
                         name="appointment_date"
                         id="appointment_date"
-                        class="block w-full mt-2 p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('appointment_date') border-red-500 @enderror"
+                        class="w-full mt-2 p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('appointment_date') border-red-500 @enderror"
                         value="{{ old('appointment_date', $appointment->appointment_date) }}" required>
-
                     @error('appointment_date')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Time Picker -->
-                <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-2 gap-6">
                     <!-- Start Time -->
                     <div>
                         <label for="start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
                         <input type="time" name="start_time" id="start_time"
-                            class="block w-full mt-2 p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('start_time') border-red-500 @enderror"
+                            class="w-full mt-2 p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('start_time') border-red-500 @enderror"
                             value="{{ old('start_time', $appointment->start_time) }}" required>
-
                         @error('start_time')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -107,13 +118,23 @@
                     <div>
                         <label for="end_time" class="block text-sm font-medium text-gray-700">End Time</label>
                         <input type="time" name="end_time" id="end_time"
-                            class="block w-full mt-2 p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('end_time') border-red-500 @enderror"
+                            class="w-full mt-2 p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('end_time') border-red-500 @enderror"
                             value="{{ old('end_time', $appointment->end_time) }}" required>
-
                         @error('end_time')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
+
+                <!-- Appointment Reason -->
+                <div>
+                    <label for="appointment_reason" class="block text-sm font-medium text-gray-700">Reason for Appointment</label>
+                    <textarea name="appointment_reason" id="appointment_reason"
+                        class="w-full mt-2 p-3 rounded-lg border shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 @error('appointment_reason') border-red-500 @enderror"
+                        rows="4">{{ old('appointment_reason', $appointment->appointment_reason) }}</textarea>
+                    @error('appointment_reason')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Submit Button -->
@@ -126,5 +147,6 @@
         </div>
     </div>
 </div>
+
 
 @endsection

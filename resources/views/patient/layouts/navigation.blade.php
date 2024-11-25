@@ -1,4 +1,4 @@
-<nav class="p-4 shadow-lg bg-gradient-to-r from-gray-900 to-black">
+<nav class="p-4 shadow-lg bg-gradient-to-r from-blue-800 to-teal-600">
     <div class="container flex items-center justify-between mx-auto">
         <div class="text-2xl font-semibold text-white">{{ auth()->user()->name }}'s Dashboard</div>
         <div class="flex items-center space-x-6">

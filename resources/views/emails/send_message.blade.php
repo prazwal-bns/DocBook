@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Notification</title>
+    <title>Message Notification</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,18 +57,17 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            New Appointment Scheduled
+            New Message Received
         </div>
         <!-- Content -->
         <div class="content">
-            <p>Dear Dr. <strong>{{ $appointment->doctor->user->name }}</strong>,</p>
-            <p>A new appointment has been made with the following details:</p>
+            <p>Dear User</strong>,</p>
+            <p>A new message has arrived to you with the following details:</p>
             <ul>
-                <li><strong>Patient Name:</strong> {{ $appointment->patient->user->name }}</li>
-                <li><strong>Date:</strong> {{ \Carbon\Carbon::parse($appointment->date)->format('F j, Y, g:i a') }}</li>
-                <li><strong>Purpose:</strong> {{ $appointment->appointment_reason }}</li>
+                <li><strong>Name:</strong> {{ $name }}</li>
+                <li><strong>Email:</strong> {{ $email }}</li>
+                <li><strong>Message:</strong> {{ $contactMessage }}</li>
             </ul>
-            <p>Please log in to your dashboard for more details.</p>
             <p>Thank you!</p>
         </div>
         <!-- Footer -->

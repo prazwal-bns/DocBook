@@ -1,4 +1,4 @@
-<footer class="py-8 mt-12 text-white shadow-lg bg-gradient-to-r from-gray-800 to-gray-900">
+<footer class="py-8 mt-12 text-white shadow-lg bg-gradient-to-r from-blue-800 to-teal-600">
     <div class="container mx-auto text-center">
       <p class="mb-2 text-lg font-semibold">&copy; 2024 Doctor Appointment Application - DocBook</p>
       <p class="text-sm">All rights reserved.</p>
