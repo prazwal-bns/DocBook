@@ -70,6 +70,8 @@ The **Doctor Appointment System** is a Laravel project designed to manage intera
 | `patient_id`       | BIGINT (FK)| References `patients.id`, Cascade On Delete |
 | `doctor_id`        | BIGINT (FK)| References `doctors.id`, Cascade On Delete |
 | `appointment_date` | DATE       | Not Null                            |
+| `status`           | ENUM       | Default: pending                    |
+| `day`              | ENUM       | Default: pending                    |
 | `start_time`       | TIME       | Not Null                            |
 | `end_time`         | TIME       | Not Null                            |
 | `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
@@ -86,6 +88,7 @@ The **Doctor Appointment System** is a Laravel project designed to manage intera
 | `day`              | ENUM       | Not Null                            |
 | `start_time`       | TIME       | Not Null                            |
 | `end_time`         | TIME       | Not Null                            |
+| `status`           | ENUM       | Default: available                  |
 | `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 | `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 
@@ -100,68 +103,202 @@ The **Doctor Appointment System** is a Laravel project designed to manage intera
 | `created_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 | `updated_at`       | TIMESTAMP  | Default: CURRENT_TIMESTAMP          |
 
+---
 
-# Database Relationships
+## 7. Reviews Table
 
-## Users and Patients
+| Column Name        | Data Type      | Constraints                          |
+|--------------------|----------------|--------------------------------------|
+| `id`               | BIGINT (PK)    | Auto Increment                       |
+| `appointment_id`   | BIGINT (FK)    | Foreign Key                          |
+| `review_msg`       | TEXT           | Not Null                             |
+| `created_at`       | TIMESTAMP      | Default: CURRENT_TIMESTAMP           |
+| `updated_at`       | TIMESTAMP      | Default: CURRENT_TIMESTAMP           |
 
-- **One-to-One**:  
-  Each `user` can be associated with exactly one `patient` record.  
-  - **Foreign Key**: `patients.user_id` → `users.id`
+
+## Relationships Between Models
+
+### 1. User
+- **Has One:** 
+  - `Patient`  
+    ```php
+    public function patient() {
+        return $this->hasOne(Patient::class);
+    }
+    ```
+  - `Doctor`  
+    ```php
+    public function doctor() {
+        return $this->hasOne(Doctor::class);
+    }
+    ```
 
 ---
 
-## Users and Doctors
-
-- **One-to-One**:  
-  Each `user` can be associated with exactly one `doctor` record.  
-  - **Foreign Key**: `doctors.user_id` → `users.id`
-
----
-
-## Doctors and Specializations
-
-- **Many-to-One**:  
-  Each `doctor` belongs to one `specialization`, but a `specialization` can have many `doctors`.  
-  - **Foreign Key**: `doctors.specialization_id` → `specializations.id`
-
----
-
-## Patients and Appointments
-
-- **One-to-Many**:  
-  A `patient` can have multiple `appointments`, but each `appointment` belongs to one `patient`.  
-  - **Foreign Key**: `appointments.patient_id` → `patients.id`
+### 2. Patient
+- **Belongs To:** 
+  - `User`  
+    ```php
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+    ```
+- **Has Many:** 
+  - `Appointment`  
+    ```php
+    public function appointments() {
+        return $this->hasMany(Appointment::class);
+    }
+    ```
 
 ---
 
-## Doctors and Appointments
-
-- **One-to-Many**:  
-  A `doctor` can have multiple `appointments`, but each `appointment` belongs to one `doctor`.  
-  - **Foreign Key**: `appointments.doctor_id` → `doctors.id`
+### 3. Doctor
+- **Belongs To:** 
+  - `User`  
+    ```php
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+    ```
+  - `Specialization`  
+    ```php
+    public function specialization() {
+        return $this->belongsTo(Specialization::class);
+    }
+    ```
+- **Has Many:** 
+  - `Appointment`  
+    ```php
+    public function appointments() {
+        return $this->hasMany(Appointment::class);
+    }
+    ```
+  - `Schedule`  
+    ```php
+    public function schedules() {
+        return $this->hasMany(Schedule::class);
+    }
+    ```
 
 ---
 
-## Doctors and Schedules
+### 4. Appointment
+- **Belongs To:** 
+  - `Doctor`  
+    ```php
+    public function doctor() {
+        return $this->belongsTo(Doctor::class);
+    }
+    ```
+  - `Patient`  
+    ```php
+    public function patient() {
+        return $this->belongsTo(Patient::class);
+    }
+    ```
+- **Has One:** 
+  - `Review`  
+    ```php
+    public function review() {
+        return $this->hasOne(Review::class, 'appointment_id', 'id');
+    }
+    ```
 
-- **One-to-Many**:  
-  A `doctor` can have multiple `schedules`, but each `schedule` belongs to one `doctor`.  
-  - **Foreign Key**: `schedules.doctor_id` → `doctors.id`
+---
 
+### 5. Schedule
+- **Belongs To:** 
+  - `Doctor`  
+    ```php
+    public function doctor() {
+        return $this->belongsTo(Doctor::class);
+    }
+    ```
+- **Has Many:** 
+  - `Appointment`  
+    ```php
+    public function appointments() {
+        return $this->hasMany(Appointment::class, 'schedule_id'); // Replace 'schedule_id' if the foreign key is named differently.
+    }
+    ```
+
+---
+
+### 6. Specialization
+- **Has Many:** 
+  - `Doctor`  
+    ```php
+    public function doctors() {
+        return $this->hasMany(Doctor::class);
+    }
+    ```
+
+---
+
+### 7. Review
+- **Belongs To:** 
+  - `Appointment`  
+    ```php
+    public function appointment() {
+        return $this->belongsTo(Appointment::class, 'appointment_id', 'id');
+    }
+    ```
+
+
+---
+
+# Doctor Appointment Management System
+
+An efficient and user-friendly platform to streamline the appointment process between doctors and patients. This system ensures seamless scheduling, diagnosis management, and system oversight.
 
 ---
 
 ## Features
-- Patients can view available doctors, book appointments, and view doctor details.
-- Doctors can manage schedules, mark availability, and view patient details for diagnosis.
-- Admins can verify doctors and oversee the entire system.
+
+### 🌟 **For Patients**
+- Browse available doctors by specialization.
+- Book appointments with doctors at your convenience.
+- Access a history of past and upcoming appointments.
+
+### 🩺 **For Doctors**
+- Manage schedules and set availability easily.
+- View and manage patient details for diagnosis and treatment.
+- Receive emails for upcoming appointments and changes.
+
+### 🛠 **For Admins**
+- Oversee and manage all system activities.
+- Manage user accounts, ensuring system integrity.
+- Manage [Add, Remove, Edit] specialization.
+
+### 🔍 **Other Features**
+- Secure login and authentication for all users.
+- Review system for patients to provide feedback on their appointments.
+- Efficient and flexible system for booking appointments.
+
+---
+
+## Tech Stack
+- **Frontend:** HTML, Tailwind CSS, JavaScript
+- **Backend:** PHP Laravel
+- **Database:** SQLite
+- **Other Tools:** Blade Templates
+
+---
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/prazwal-bns/DocBook.git
+   cd DocBook
+   
 
 ---
 
 ## Class Diagram
+![updatedClassDiagram](https://github.com/user-attachments/assets/9d504b97-289d-482a-b58f-5336a5e0a98b)
 
-![classdiagram](https://github.com/user-attachments/assets/d6cecd07-9ec4-420b-86a2-b41da7f9a1f1)
 
 
 ### Contributions
