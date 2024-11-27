@@ -23,5 +23,7 @@ class HomeController extends Controller
         $contactMessage = $request->message;
 
         Mail::to($user)->send(new SendMessage($name,$email,$contactMessage));
+
+        return redirect()->back();
     }
 }

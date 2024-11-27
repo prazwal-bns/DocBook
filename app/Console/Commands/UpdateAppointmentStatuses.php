@@ -36,7 +36,6 @@ class UpdateAppointmentStatuses extends Command
             ->update(['status' => 'completed']);
             */
 
-
         $updatedAppointments = Appointment::where('status', '!=', 'completed')
             ->where('appointment_date', '<', now())
             ->update(['status' => 'completed']);

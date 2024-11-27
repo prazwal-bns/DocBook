@@ -7,6 +7,7 @@ use App\Mail\AppointmentSent;
 use App\Models\Appointment;
 use App\Models\Doctor;
 use App\Models\Patient;
+use App\Models\Payment;
 use App\Models\Schedule;
 use App\Models\Specialization;
 use Carbon\Carbon;
@@ -77,8 +78,12 @@ class AppointmentController extends Controller
         $scheduleEnd = Carbon::parse($schedule->end_time);
 
         // Check if the appointment times are within the doctor's schedule
-        if (!$appointmentStart->between($scheduleStart, $scheduleEnd, true) ||
-            !$appointmentEnd->between($scheduleStart, $scheduleEnd, true)) {
+        // if (!$appointmentStart->between($scheduleStart, $scheduleEnd, true) ||
+        //     !$appointmentEnd->between($scheduleStart, $scheduleEnd, true)) {
+        //     return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
+        // }
+        if (!($appointmentStart->format('H:i') >= $scheduleStart->format('H:i') &&
+            $appointmentEnd->format('H:i') <= $scheduleEnd->format('H:i'))) {
             return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
         }
 
@@ -95,6 +100,14 @@ class AppointmentController extends Controller
             'day' => $validated['day']
         ]);
 
+        $price = 1000;
+
+        Payment::create([
+            'appointment_id' => $appointment->id ,
+            'payment_status' => 'unpaid',
+            'amount' => $price
+        ]);
+
         $doctorEmail = $doctor->user->email;
         Mail::to($doctorEmail)->send(new AppointmentSent($appointment));
 
@@ -106,8 +119,7 @@ class AppointmentController extends Controller
     public function viewMyAppointment(){
         $userId = Auth::user()->id;
         $patientId = Patient::where('user_id', $userId)->value('id');
-        $appointmentData = Appointment::where('patient_id',$patientId)->latest('status')->get();
-
+        $appointmentData = Appointment::where('patient_id',$patientId)->latest('status')->paginate(5);
 
         return view('patient.appointments.view_my_appointments', compact('appointmentData'));
     }
@@ -274,8 +286,13 @@ class AppointmentController extends Controller
         $scheduleStart = Carbon::parse($schedule->start_time);
         $scheduleEnd = Carbon::parse($schedule->end_time);
 
-        if (!$appointmentStart->between($scheduleStart, $scheduleEnd, true) ||
-            !$appointmentEnd->between($scheduleStart, $scheduleEnd, true)) {
+        // if (!$appointmentStart->between($scheduleStart, $scheduleEnd, true) ||
+        //     !$appointmentEnd->between($scheduleStart, $scheduleEnd, true)) {
+        //     return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
+        // }
+
+        if (!($appointmentStart->format('H:i') >= $scheduleStart->format('H:i') &&
+            $appointmentEnd->format('H:i') <= $scheduleEnd->format('H:i'))) {
             return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
         }
 

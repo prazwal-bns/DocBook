@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\HomeController;
@@ -20,6 +21,17 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::post('/send-message', [HomeController::class, 'sendMessage'])->name('send.message');
+
+
+Route::middleware(['auth','verified'])->group(function(){
+    // Route::get('/payment/create{appointment}', [PaymentController::class, ,'create'])->name('payment.create');
+
+    Route::post('/esewaPay/{appointmentId}', [PaymentController::class,'esewaPay'])->name('esewaPay');
+    Route::get ('/success',[PaymentController::class,'esewaPaySuccess'])->name('payment.success');
+    Route::get ('/failure',[PaymentController::class,'esewaPayFailure'])->name('payment.failure');
+
+    Route::resource('payments',PaymentController::class);
+});
 
 
 // ADMIN WORKFLOW
@@ -108,6 +120,7 @@ Route::middleware(['auth', 'role.redirect:doctor'])->group(function () {
     Route::get('/view/doctor/appointments', [AppointmentController::class, 'viewDoctorAppointments'])->name('view.doctor.appointments');
 
     Route::get('/appointments/{id}/edit', [AppointmentController::class, 'editPatientAppointment'])->name('edit.patient.appointment');
+
     Route::put('update/patient/appointment/{id}', [AppointmentController::class, 'updatePatientAppointment'])->name('update.patient.appointment');
 
     Route::get('viewA/doctor/appointment/{id}', [AppointmentController::class, 'viewADoctorAppointment'])->name('view.a.doctor.appointment');
