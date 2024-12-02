@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Doctor;
 use App\Models\Patient;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
@@ -35,7 +39,7 @@ class ProfileController extends Controller
         $user = auth()->user(); // Get the logged-in user
         return response()->json([
             'message' => 'Profile fetched successfully!',
-            'data' => $user
+            'data' => new UserResource($user)
         ], 200);
     }
 
@@ -46,11 +50,6 @@ class ProfileController extends Controller
     {
         $user = auth()->user(); // Get the logged-in user
         $data = $request->validated(); // Get validated data
-
-        // Update the User model data
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']); // Hash the new password
-        }
 
         $user->update($data); // Update the user data
 
@@ -83,4 +82,24 @@ class ProfileController extends Controller
     {
         //
     }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse{
+        $data = $request->validated();
+
+        $user = auth()->user();
+
+        if(!Hash::check($data['current_password'], $user->password)){
+            throw ValidationException::withMessages([
+                'current_password' => ['The provided current password does not match our records.'],
+            ]);
+        }
+
+        $user->password = Hash::make($data['new_password']);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password changed successfully!',
+        ], 200);
+    }
+    // end function
 }

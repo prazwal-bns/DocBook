@@ -24,7 +24,6 @@ Route::post('/send-message', [HomeController::class, 'sendMessage'])->name('send
 
 
 Route::middleware(['auth','verified'])->group(function(){
-    // Route::get('/payment/create{appointment}', [PaymentController::class, ,'create'])->name('payment.create');
 
     Route::post('/esewaPay/{appointmentId}', [PaymentController::class,'esewaPay'])->name('esewaPay');
     Route::get ('/success',[PaymentController::class,'esewaPaySuccess'])->name('payment.success');

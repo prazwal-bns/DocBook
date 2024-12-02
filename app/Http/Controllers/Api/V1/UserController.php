@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\User;
 use App\Services\UserService;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -23,15 +24,35 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
+    // public function index()
+    // {
+    //     $users = User::with('patient','doctor')->get();
+
+    //     return response()->json([
+    //         'message' => 'Data Fetched Successfully !!',
+    //         'data' =>  UserResource::collection($users)
+    //     ], 200);
+    // }
+
+    // For paginated data
     public function index()
     {
-        $users = User::with('patient','doctor')->get();
+        $users = User::with('patient', 'doctor')->paginate(2); 
 
         return response()->json([
             'message' => 'Data Fetched Successfully !!',
-            'data' => $users
+            'data' => UserResource::collection($users->items()), 
+            'pagination' => [
+                'total' => $users->total(),
+                'per_page' => $users->perPage(),
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'from' => $users->firstItem(),
+                'to' => $users->lastItem(),
+            ]
         ], 200);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -67,7 +88,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User Data Fetched Successfully !!',
-            'data' => $user
+            'data' => new UserResource($user)
         ],200);
     }
 
@@ -112,21 +133,33 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
-
-        if ($user->role === 'patient') {
-            $user->patient()->delete();
+        try {
+            $user = User::findOrFail($id);
+    
+            if ($user->role === 'patient') {
+                $user->patient()->delete();
+            }
+    
+            if ($user->role === 'doctor') {
+                $user->doctor()->delete();
+            }
+    
+            $user->delete();
+    
+            return response()->json([
+                'message' => 'User and related records deleted successfully!'
+            ], 200);
+    
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'The user with the specified ID does not exist.',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while trying to delete the user.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        if ($user->role === 'doctor') {
-            $user->doctor()->delete();
-        }
-
-        $user->delete();
-
-        return response()->json([
-            'message' => 'User and related records deleted successfully!'
-        ], 200);
     }
 
 }

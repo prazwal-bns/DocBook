@@ -8,9 +8,17 @@ use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ScheduleService;
 
 class ScheduleController extends Controller
 {
+    protected $scheduleService;
+
+    public function __construct(ScheduleService $scheduleService)
+    {
+        $this->scheduleService = $scheduleService;
+    }
+
     public function viewSchedule(){
         $user = Auth::user()->id;
         $doctor = Doctor::where('user_id', $user)->first();
@@ -25,59 +33,62 @@ class ScheduleController extends Controller
     }
     // end function
 
+    // public function storeSchedule(Request $request)
+    // {
+    //     // Validate the input data (start and end times)
+    //     $validated = $request->validate([
+    //         'schedule.*.start_time' => 'required|date_format:H:i',
+    //         'schedule.*.end_time' => 'required|date_format:H:i|after:schedule.*.start_time',
+    //     ]);
+
+    //     // Get the logged-in doctor
+    //     $doctor = auth()->user()->doctor;
+
+
+    //     // Loop through the schedule input for each day
+    //     foreach ($request->schedule as $day => $times) {
+    //         $start_time = Carbon::parse($times['start_time']);
+    //         $end_time = Carbon::parse($times['end_time']);
+
+    //         // Check if the doctor already has a schedule for the same day
+    //         $existingSchedule = Schedule::where('doctor_id', $doctor->id)
+    //             ->where('day', $day)
+    //             ->first();
+
+    //         if ($existingSchedule) {
+    //             // If an existing schedule is found, redirect to edit page
+    //             return redirect()->route('view.schedule')
+    //                 ->with('error', 'You already have a schedule. You cannot add another schedule.',);
+    //         }
+
+    //         // If no existing schedule is found, create a new schedule
+    //         Schedule::create([
+    //             'doctor_id' => $doctor->id,
+    //             'day' => $day,
+    //             'start_time' => $start_time,
+    //             'end_time' => $end_time,
+    //         ]);
+    //     }
+
+    //     return redirect()->route('view.schedule')->with('success', 'Schedule created successfully!');
+    // }
+
     public function storeSchedule(Request $request)
     {
-        // Validate the input data (start and end times)
-        $validated = $request->validate([
-            'schedule.*.start_time' => 'required|date_format:H:i',
-            'schedule.*.end_time' => 'required|date_format:H:i|after:schedule.*.start_time',
-        ]);
-
-        // Get the logged-in doctor
         $doctor = auth()->user()->doctor;
 
+        $result = $this->scheduleService->createSchedule($request, $doctor);
 
-        /* The $request->schedule is stored in this format
-        array:7 [▼ // app\Http\Controllers\ScheduleController.php:30
-        "Sunday" => array:2 [▼
-            "start_time" => "14:36"
-            "end_time" => "12:13"
-        ]
-        */
-
-        // Loop through the schedule input for each day
-        foreach ($request->schedule as $day => $times) {
-            $start_time = Carbon::parse($times['start_time']);
-            $end_time = Carbon::parse($times['end_time']);
-
-            // Check if the doctor already has a schedule for the same day
-            $existingSchedule = Schedule::where('doctor_id', $doctor->id)
-                ->where('day', $day)
-                ->first();
-
-            if ($existingSchedule) {
-                // If an existing schedule is found, redirect to edit page
-                return redirect()->route('view.schedule')
-                    ->with('error', 'You already have a schedule. You cannot add another schedule.',);
-            }
-
-            // If no existing schedule is found, create a new schedule
-            Schedule::create([
-                'doctor_id' => $doctor->id,
-                'day' => $day,
-                'start_time' => $start_time,
-                'end_time' => $end_time,
-            ]);
+        // Check if the result is an error, if so redirect with the error message
+        if ($result['status'] === 'error') {
+            return redirect()->route('view.schedule')
+                ->with('error', $result['message']);
         }
 
-        return redirect()->route('view.schedule')->with('success', 'Schedule created successfully!');
+        // If success, redirect with success message
+        return redirect()->route('view.schedule')->with('success', $result['message']);
     }
     // end function
-
-    // public function editSchedule($id){
-    //     $schedule = Schedule::findOrFail($id);
-    //     return view('doctor.schedules.edit_schedule', compact('schedule'));
-    // }
 
     // issue
     public function editSchedule($id)
@@ -95,7 +106,7 @@ class ScheduleController extends Controller
 
         return view('doctor.schedules.edit_schedule', compact('schedule'));
     }
-    // end funciton
+    // end function
 
     public function updateSchedule(Request $request, $id){
         $validatedData = $request->validate([

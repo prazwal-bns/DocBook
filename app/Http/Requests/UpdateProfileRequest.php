@@ -28,7 +28,6 @@ class UpdateProfileRequest extends FormRequest
         $rules = [
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $userId,
-            'password' => 'nullable|string|min:6|confirmed',
             'address' => 'nullable|string',
             'phone' => 'nullable|string',
         ];
