@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AppointmentController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ProfileController as UserProfileController;
 use App\Http\Controllers\Api\V1\ScheduleController;
@@ -36,7 +37,21 @@ Route::prefix('V1')->group(function(){
 
     // Doctor Routes
     Route::prefix('doctor')->middleware(['auth:sanctum','role.redirect:doctor'])->group(function(){
-        Route::apiResource('schedules', ScheduleController::class);
+        Route::apiResource('schedules', ScheduleController::class)->except(['destroy']);
+        Route::delete('schedules', [ScheduleController::class, 'destroy']);
+
+        Route::get('/view/my/appointments', [AppointmentController::class, 'viewAllAppointments'])->name('view.all.appointments');
+        Route::put('update/patient-apt-status/{appointmentId}', [AppointmentController::class, 'updateAppointmentStatus'])->name('update.appointment.status');
+
+    });
+
+
+    // Patient Routes
+    Route::prefix('patient')->middleware(['auth:sanctum','role.redirect:patient'])->group(function(){
+        Route::apiResource('appointments',AppointmentController::class);
+        Route::apiResource('specializations',SpecializationController::class)->only(['index']);
+        Route::get('specialized/doctors/{specId}',[SpecializationController::class, 'viewAssociatedDoctors'])->name('view.specialized.doctors');
+        Route::get('view/doctor/schedule/{doctorId}',[ScheduleController::class, 'viewWeeklySchedules'])->name('view.schedule');
     });
 
 });

@@ -42,7 +42,7 @@ class UpdateProfileRequest extends FormRequest
         if ($this->user()->role === 'doctor') {
             $rules['specialization_id'] = 'nullable|exists:specializations,id';
             $rules['bio'] = 'nullable|string';
-            $rules['status'] = 'nullable|in:available,unavailable';
+            $rules['status'] = 'nullable|in:available,not_available';
         }
 
         return $rules;

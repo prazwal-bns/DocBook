@@ -132,6 +132,7 @@ Route::middleware(['auth', 'role.redirect:doctor'])->group(function () {
 
     Route::get('view/patient/review/{appointmentId}', [ReviewController::class, 'viewYourReview'])->name('view.patient.review');
 
+
 });
 
 

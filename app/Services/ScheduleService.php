@@ -3,6 +3,7 @@
 namespace App\Services;
 use Carbon\Carbon;
 use App\Models\Schedule;
+use App\Models\Appointment;
 use Illuminate\Support\Facades\Validator;
 
 class ScheduleService
@@ -17,27 +18,23 @@ class ScheduleService
 
     public function createSchedule($request, $doctor)
     {
-        // Validate the input data (start and end times)
         $validated = $request->validate([
             'schedule.*.start_time' => 'required|date_format:H:i',
             'schedule.*.end_time' => 'required|date_format:H:i|after:schedule.*.start_time',
         ]);
 
-        // Loop through the schedule input for each day
         foreach ($request->schedule as $day => $times) {
-            $start_time = Carbon::parse($times['start_time']);
-            $end_time = Carbon::parse($times['end_time']);
+            $start_time = Carbon::createFromFormat('H:i', $times['start_time'])->format('H:i');
+            $end_time = Carbon::createFromFormat('H:i', $times['end_time'])->format('H:i');
 
-            // Check if the doctor already has a schedule for the same day
             $existingSchedule = Schedule::where('doctor_id', $doctor->id)
                 ->where('day', $day)
                 ->first();
 
             if ($existingSchedule) {
-                // Return the error message if an existing schedule is found
                 return [
                     'status' => 'error',
-                    'message' => "Schedule already exists.",
+                    'message' => "Schedule already exists for {$day}.",
                 ];
             }
 
@@ -56,51 +53,59 @@ class ScheduleService
         ];
     }
 
+
     public function updateSchedule($doctor, $day, $data)
     {
-        // Validate the input data
+        $normalizedDay = ucfirst(strtolower($day));
+
+        $schedule = Schedule::where('doctor_id', $doctor->id)
+            ->where('day', $normalizedDay)
+            ->first();
+
+        if (!$schedule) {
+            return [
+                'status' => 'error',
+                'message' => 'Schedule not found for the specified day.',
+            ];
+        }
+
+        $hasAppointments = Appointment::where('doctor_id', $doctor->id)
+            ->whereDate('appointment_date', Carbon::now()->next($normalizedDay)->toDateString())
+            ->exists();
+
+        if ($hasAppointments) {
+            return [
+                'status' => 'error',
+                'message' => 'Cannot update the schedule as there are appointments for this day.',
+            ];
+        }
+
         $validator = Validator::make($data, [
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'status' => 'required|in:available,unavailable'
+            'status' => 'required|in:available,unavailable',
         ]);
 
         if ($validator->fails()) {
             return [
                 'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
             ];
         }
 
-        // Find the schedule for the doctor and the specified day
-        $schedule = Schedule::where('doctor_id', $doctor->id)
-            ->where('day', ucfirst(strtolower($day))) // Normalize the day to match case in DB
-            ->first();
-
-        // If no schedule is found, return an error
-        if (!$schedule) {
-            return [
-                'status' => 'error',
-                'message' => 'Schedule not found for this doctor on the given day.',
-            ];
-        }
-
-        // Parse the start and end times
-        $start_time = Carbon::parse($data['start_time']);
-        $end_time = Carbon::parse($data['end_time']);
-
-        // Update the schedule with the new times and status
         $schedule->update([
-            'start_time' => $start_time,
-            'end_time' => $end_time,
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
             'status' => $data['status'],
         ]);
 
         return [
             'status' => 'success',
-            'message' => 'Schedule updated successfully!',
-            'data' => $schedule
+            'message' => 'Schedule updated successfully.',
+            'data' => $schedule,
         ];
     }
+
+
 }

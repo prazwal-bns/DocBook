@@ -33,46 +33,6 @@ class ScheduleController extends Controller
     }
     // end function
 
-    // public function storeSchedule(Request $request)
-    // {
-    //     // Validate the input data (start and end times)
-    //     $validated = $request->validate([
-    //         'schedule.*.start_time' => 'required|date_format:H:i',
-    //         'schedule.*.end_time' => 'required|date_format:H:i|after:schedule.*.start_time',
-    //     ]);
-
-    //     // Get the logged-in doctor
-    //     $doctor = auth()->user()->doctor;
-
-
-    //     // Loop through the schedule input for each day
-    //     foreach ($request->schedule as $day => $times) {
-    //         $start_time = Carbon::parse($times['start_time']);
-    //         $end_time = Carbon::parse($times['end_time']);
-
-    //         // Check if the doctor already has a schedule for the same day
-    //         $existingSchedule = Schedule::where('doctor_id', $doctor->id)
-    //             ->where('day', $day)
-    //             ->first();
-
-    //         if ($existingSchedule) {
-    //             // If an existing schedule is found, redirect to edit page
-    //             return redirect()->route('view.schedule')
-    //                 ->with('error', 'You already have a schedule. You cannot add another schedule.',);
-    //         }
-
-    //         // If no existing schedule is found, create a new schedule
-    //         Schedule::create([
-    //             'doctor_id' => $doctor->id,
-    //             'day' => $day,
-    //             'start_time' => $start_time,
-    //             'end_time' => $end_time,
-    //         ]);
-    //     }
-
-    //     return redirect()->route('view.schedule')->with('success', 'Schedule created successfully!');
-    // }
-
     public function storeSchedule(Request $request)
     {
         $doctor = auth()->user()->doctor;
@@ -108,6 +68,7 @@ class ScheduleController extends Controller
     }
     // end function
 
+
     public function updateSchedule(Request $request, $id){
         $validatedData = $request->validate([
             'start_time' => 'required|date_format:H:i',
@@ -129,6 +90,8 @@ class ScheduleController extends Controller
         return redirect()->route('view.schedule')->with('success', 'Schedule updated successfully!');
     }
     // end function
+
+
 
     public function deleteSchedule($doctorId){
         // Check if the doctor has any active appointments

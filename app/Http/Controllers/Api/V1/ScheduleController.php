@@ -29,6 +29,12 @@ class ScheduleController extends Controller
         $doctor = Doctor::where('user_id', $user)->first();
         $schedules = Schedule::where('doctor_id', $doctor->id)->get();
 
+        if($schedules->isEmpty()){
+            return response()->json([
+                'message' => 'You currently have no Schedule.'
+            ],200);
+        }
+
         return response()->json([
             'message' => 'Schedules Retrieved Successfully !!',
             'data' => ScheduleResource::collection($schedules)
@@ -91,6 +97,7 @@ class ScheduleController extends Controller
     /**
      * Update the specified resource in storage.
      */
+
     public function update(Request $request, string $day)
     {
         $doctor = auth()->user()->doctor;
@@ -102,7 +109,6 @@ class ScheduleController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $response['message'],
-                'errors' => $response['errors'] ?? null,
             ], 422);
         }
 
@@ -113,31 +119,9 @@ class ScheduleController extends Controller
         ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    // public function destroy(Request $request,string $doctorId)
-    // {
-    //     $doctorHasAppointments = Appointment::where('doctor_id', $doctorId)->exists();
-
-    //     if ($doctorHasAppointments) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'Schedules cannot be deleted as there are appointments associated with this doctor.',
-    //         ], 400);
-    //     }
-
-    //     Schedule::where('doctor_id', $doctorId)->delete();
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'All schedules for the current doctor have been deleted successfully!',
-    //     ], 200);
-    // }
-
     public function destroy(Request $request)
     {
-        $doctorId = auth()->user()->doctor->id;  // Get the authenticated doctor's id
+        $doctorId = auth()->user()->doctor->id; 
 
         $doctorHasAppointments = Appointment::where('doctor_id', $doctorId)->exists();
 
@@ -155,5 +139,40 @@ class ScheduleController extends Controller
             'message' => 'All schedules for the current doctor have been deleted successfully!',
         ], 200);
     }
+    // end function
 
+    public function viewWeeklySchedules($doctorId)
+    {
+        $doctor = Doctor::find($doctorId);
+        if (!$doctor) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The selected doctor does not exist.',
+            ], 404);
+        }
+    
+        if ($doctor->status === 'not_available') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The selected doctor is currently not available.',
+            ], 400);
+        }
+    
+        $schedules = $doctor->schedules()->get();
+    
+        if ($schedules->isEmpty()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The selected doctor has no schedules available.',
+            ], 404);
+        }
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Doctor\'s weekly schedule retrieved successfully.',
+            'data' => ScheduleResource::collection($schedules),
+        ], 200);
+    }
+    
+    // end function
 }

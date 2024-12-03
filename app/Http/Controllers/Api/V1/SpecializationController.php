@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\DoctorResource;
 use App\Http\Resources\SpecializationResource;
 use App\Models\Doctor;
 use App\Models\Specialization;
@@ -109,6 +110,40 @@ class SpecializationController extends Controller
                 'message' => 'Specialization with the mentioned id not found!!'
             ], 404);
         }
+    }
+    // end function
+
+    public function viewAssociatedDoctors($specializationId){
+        $doctors = Doctor::where('specialization_id', $specializationId)
+            ->whereHas('schedules')
+            ->where('status', 'available')
+            ->get();
+
+        $specialization = Specialization::find($specializationId);
+
+        if (!$specialization) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Specialization not found.',
+            ], 404);
+        }
+    
+        if ($doctors->isEmpty()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'No doctors available for this specialization.',
+                'data' => [],
+            ], 200);
+        }
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Doctors retrieved successfully.',
+            'data' => [
+                'specialization' => new SpecializationResource($specialization),
+                'doctors' => DoctorResource::collection($doctors),
+            ],
+        ], 200);
     }
     
 

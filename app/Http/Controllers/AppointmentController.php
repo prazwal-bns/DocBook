@@ -10,6 +10,7 @@ use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Schedule;
 use App\Models\Specialization;
+use App\Services\AppointmentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -20,6 +21,14 @@ use Illuminate\Support\Facades\Mail;
 
 class AppointmentController extends Controller
 {
+    protected $appointmentService;
+
+    public function __construct(AppointmentService $appointmentService)
+    {
+        $this->appointmentService = $appointmentService;
+    }
+
+    
     public function makeAppointment(){
         $specializations = Specialization::all();
         return view('patient.appointments.make_appointment', compact('specializations'));
@@ -45,73 +54,21 @@ class AppointmentController extends Controller
     }
     // end function
 
-    public function storeAppointment(AppointmentRequest $request){
+
+    public function storeAppointment(AppointmentRequest $request)
+    {
         $validated = $request->validated();
-        $day = Carbon::parse($validated['appointment_date'])->format('l');
-        $validated['day'] = $day;
 
-        $doctor = Doctor::findOrFail($validated['doctor_id']);
+        // Instantiate the service class and call the method
+        $appointmentService = new AppointmentService();
+        $result = $appointmentService->storeAppointment($validated);
 
-        if ($doctor->status === 'not_available') {
-            return back()->with('error', 'The selected doctor is currently not available for appointments.');
+        if ($result['status'] == 'error') {
+            return back()->with('error', $result['message']);
         }
 
-        // retrive day of appointment for eg: 'Monday'
-        $dayOfWeek = Carbon::parse($validated['appointment_date'])->format('l');
-
-        $schedule = $doctor->schedules()->where('day', $dayOfWeek)->first();
-
-        // Check if the schedule exists and is available
-        if (!$schedule) {
-            return back()->with('error', 'The doctor does not have a schedule for the selected day.');
-        }
-
-        if ($schedule->status !== 'available') {
-            return back()->with('error', 'The doctor is currently not available on the selected day.');
-        }
-
-        // Parse appointment times
-        $appointmentStart = Carbon::parse($validated['start_time']);
-        $appointmentEnd = Carbon::parse($validated['end_time']);
-
-        $scheduleStart = Carbon::parse($schedule->start_time);
-        $scheduleEnd = Carbon::parse($schedule->end_time);
-
-        // Check if the appointment times are within the doctor's schedule
-        // if (!$appointmentStart->between($scheduleStart, $scheduleEnd, true) ||
-        //     !$appointmentEnd->between($scheduleStart, $scheduleEnd, true)) {
-        //     return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
-        // }
-        if (!($appointmentStart->format('H:i') >= $scheduleStart->format('H:i') &&
-            $appointmentEnd->format('H:i') <= $scheduleEnd->format('H:i'))) {
-            return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
-        }
-
-
-        // All checks passed; create the appointment
-        $appointment = Appointment::create([
-            'patient_id' => Auth::user()->patient->id,
-            'doctor_id' => $doctor->id,
-            'appointment_date' => $validated['appointment_date'],
-            'start_time' => $validated['start_time'],
-            'end_time' => $validated['end_time'],
-            'appointment_reason' => $validated['appointment_reason'],
-            'status' => 'pending',
-            'day' => $validated['day']
-        ]);
-
-        $price = 1000;
-
-        Payment::create([
-            'appointment_id' => $appointment->id ,
-            'payment_status' => 'unpaid',
-            'amount' => $price
-        ]);
-
-        $doctorEmail = $doctor->user->email;
-        Mail::to($doctorEmail)->send(new AppointmentSent($appointment));
-
-        return redirect()->route('view.my.appointment')->with('success', 'Appointment booked successfully!');
+        // Redirect with success message
+        return redirect()->route('view.my.appointment')->with('success', $result['message']);
     }
 
     // end function
@@ -156,16 +113,6 @@ class AppointmentController extends Controller
     }
     // end function
 
-    // public function updatePatientAppointment(Request $request, $id){
-    //     $validated = $request->validate([
-    //         'status' => 'required|in:pending,confirmed,completed,cancelled'
-    //     ]);
-
-    //     $appointment = Appointment::findOrFail($id);
-    //     $appointment->update($validated);
-
-    //     return redirect()->route('view.doctor.appointments')->with('success','Appointment status Updated Successfully !!');
-    // }
     public function updatePatientAppointment(Request $request, $id){
         $validatedData = $request->validate([
             'status' => 'required|in:pending,confirmed,completed',
@@ -173,9 +120,9 @@ class AppointmentController extends Controller
 
         $appointment = Appointment::findOrFail($id);
         $validTransitions = [
-            'pending' => ['confirmed'],        // From pending, you can only move to confirmed
-            'confirmed' => ['completed'],     // From confirmed, you can only move to completed
-            'completed' => [],                // From completed, no transitions allowed
+            'pending' => ['confirmed'],      
+            'confirmed' => ['completed'],    
+            'completed' => [],               
         ];
 
         $currentStatus = $appointment->status;
@@ -241,72 +188,19 @@ class AppointmentController extends Controller
     }
     // end function
 
-    public function updateMyAppointment(AppointmentRequest $request, $appointmentId){
-        // Step 1: Validate the request
-        $validated = $request->validated();
-        $day = Carbon::parse($validated['appointment_date'])->format('l');
-        $validated['day'] = $day;
-
-        // Step 2: Retrieve the appointment and check ownership
+    public function updateMyAppointment(AppointmentRequest $request, $appointmentId)
+    {
         $appointment = Appointment::findOrFail($appointmentId);
-        $patient = Auth::user()->patient;
 
-        if (!$patient || $appointment->patient_id !== $patient->id) {
-            abort(403, 'You are not authorized to edit this appointment.');
+        // Gate::authorize('update',$appointment);
+
+        // Step 2: Use the service to update the appointment
+        try {
+            $this->appointmentService->updateAppointment($appointment, $request->validated());
+            return redirect()->route('view.my.appointment')->with('success', 'Appointment updated successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // Ensure the appointment status is 'pending'
-        if ($appointment->status !== 'pending') {
-            abort(403, 'This appointment is already confirmed and cannot be edited.');
-        }
-
-        // Step 3: Retrieve the doctor and check availability
-        $doctor = Doctor::findOrFail($validated['doctor_id']);
-        if ($doctor->status === 'not_available') {
-            return back()->with('error', 'The selected doctor is currently not available for appointments.');
-        }
-
-        // Step 4: Check if the doctor has a schedule for the selected day
-        $dayOfWeek = Carbon::parse($validated['appointment_date'])->format('l');
-        $schedule = $doctor->schedules()->where('day', $dayOfWeek)->first();
-
-        if (!$schedule) {
-            return back()->with('error', 'The doctor does not have a schedule for the selected day.');
-        }
-
-        // Step 5: Ensure the doctor is available on the selected day
-        if ($schedule->status !== 'available') {
-            return back()->with('error', 'The doctor is currently not available on the selected day.');
-        }
-
-        // Step 6: Check if the new appointment times fit within the doctor's available schedule
-        $appointmentStart = Carbon::parse($validated['start_time']);
-        $appointmentEnd = Carbon::parse($validated['end_time']);
-
-        $scheduleStart = Carbon::parse($schedule->start_time);
-        $scheduleEnd = Carbon::parse($schedule->end_time);
-
-        // if (!$appointmentStart->between($scheduleStart, $scheduleEnd, true) ||
-        //     !$appointmentEnd->between($scheduleStart, $scheduleEnd, true)) {
-        //     return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
-        // }
-
-        if (!($appointmentStart->format('H:i') >= $scheduleStart->format('H:i') &&
-            $appointmentEnd->format('H:i') <= $scheduleEnd->format('H:i'))) {
-            return back()->with('error', 'The selected time is not within the doctor\'s available schedule.');
-        }
-
-        // Step 7: Update the appointment
-        $appointment->update([
-            'appointment_date' => $validated['appointment_date'],
-            'start_time' => $validated['start_time'],
-            'end_time' => $validated['end_time'],
-            'appointment_reason' => $validated['appointment_reason'],
-            'day' => $validated['day']
-        ]);
-
-        // Step 8: Redirect back with success message
-        return redirect()->route('view.my.appointment')->with('success', 'Appointment updated successfully!');
     }
     // end function
 
