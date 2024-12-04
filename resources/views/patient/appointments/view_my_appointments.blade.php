@@ -98,13 +98,13 @@
 
                 <td class="px-4 py-2">
                     @if ($appointment->payment->payment_status !== 'paid')
-                        <form action="{{ route('esewaPay',$appointment->id) }}" method="POST">
-                            @csrf
-                            <button type="submit"
+                        {{-- <form action="{{ route('esewaPay',$appointment->id) }}" method="POST">
+                            @csrf --}}
+                            <a href="{{ route('esewaPay',$appointment->id) }}"
                                 class="inline-block px-4 py-2 ml-4 text-sm font-semibold text-white bg-purple-600 rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">
                                 Pay
-                            </button>
-                        </form>
+                            </a>
+                        {{-- </form> --}}
                     @else
                     <span class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 bg-green-600 rounded shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Paid</span>
 

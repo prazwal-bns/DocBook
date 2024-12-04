@@ -76,7 +76,7 @@ class AppointmentController extends Controller
     public function viewMyAppointment(){
         $userId = Auth::user()->id;
         $patientId = Patient::where('user_id', $userId)->value('id');
-        $appointmentData = Appointment::where('patient_id',$patientId)->latest('status')->paginate(5);
+        $appointmentData = Appointment::where('patient_id',$patientId)->latest()->paginate(3);
 
         return view('patient.appointments.view_my_appointments', compact('appointmentData'));
     }
@@ -87,7 +87,7 @@ class AppointmentController extends Controller
         $doctorId = Doctor::where('user_id',$userId)->value('id');
 
         $schedules = Schedule::where('doctor_id',$doctorId)->get();
-        $appointmentData = Appointment::where('doctor_id', $doctorId)->latest('appointment_date')->get();
+        $appointmentData = Appointment::where('doctor_id', $doctorId)->latest()->get();
 
         return view('doctor.appointments.view_doctors_appointments', compact('appointmentData','schedules'));
     }

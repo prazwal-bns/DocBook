@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignIdFor(Appointment::class)->constrained()->cascadeOnDelete();
             $table->string('pid')->nullable();
             $table->enum('payment_status',['paid','unpaid'])->default('unpaid');
+            $table->string('transaction_id')->nullable();
             $table->float('amount');
             $table->timestamps();
         });

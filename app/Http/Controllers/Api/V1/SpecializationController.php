@@ -23,6 +23,14 @@ class SpecializationController extends Controller
         ],200);
     }
 
+    public function viewAllSpecializations(){
+        $specializations = Specialization::all();
+        return response()->json([
+            'message' => 'Data Fetched Successfully !!',
+            'data' => SpecializationResource::collection($specializations)
+        ],200);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

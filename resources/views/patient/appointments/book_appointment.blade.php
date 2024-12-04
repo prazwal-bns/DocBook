@@ -84,7 +84,7 @@
             </div>
 
             <!-- Appointment Form -->
-            <form action="{{ route('appointments.store') }}" method="POST">
+            <form action="{{ route('store.my.appointments') }}" method="POST">
                 @csrf
                 <input type="hidden" name="doctor_id" value="{{ $doctor->id }}">
 

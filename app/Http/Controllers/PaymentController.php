@@ -5,114 +5,69 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Payment;
 use Illuminate\Http\Request;
-use RemoteMerge\Esewa\Client;
+use Xentixar\EsewaSdk\Esewa;
 
 class PaymentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-
-    }
 
     // pay via e-sewa
-    public function esewaPay(Request $request, $appointmentId){
+    public function esewaPay($appointmentId){
         $payment = Payment::where('appointment_id', $appointmentId)->first();
 
-        $pid = uniqid();
-        $amount = $payment->amount;
+        $payment = Payment::findOrFail($payment->id);
 
-        $payment->pid = $pid;
-        $payment->save();
+        // dd($payment->toArray());
 
-        $successUrl = route('payment.success', );
-        $failureUrl = route('payment.failure', );
+        $esewa = new Esewa();
 
-        $esewa = new Client([
-            'merchant_code' => 'EPAYTEST',
-            'success_url' => $successUrl,
-            'failure_url' => $failureUrl,
-        ]);
+        $transaction_id = 'TXN-' . uniqid();
+        $payment->update(['transaction_id' => $transaction_id]);
 
-        $esewa->payment($pid, $amount, 0, 0, 0);
+        $esewa->config(
+            route('payment.success'),
+            route('payment.failure'),
+            $payment->amount,
+            $transaction_id
+        );
+
+        return $esewa->init();
     }
 
-    public function esewaPaySuccess() {
-        // echo  "success";
-        $pid = $_GET['oid'];
-        $refid = $_GET['refId'];
-        $amount = $_GET['amt'];
+    public function esewaPaySuccess(Request $request) {
 
-        $payment = Payment::where('pid', $pid)->first();
 
-        $payment->payment_status = 'paid';
-        $payment->save();
+        $esewa = new Esewa();
+        $response = $esewa->decode($request);
 
-        if($payment->payment_status == 'paid') {
-            return redirect()->route('patient.dashboard')->with( 'payment','Payment Successful');
+        // dd($response);
+
+        if ($response) {
+            if (isset($response['transaction_uuid'])) {
+                $transactionUuid = $response['transaction_uuid'];
+                $payment = Payment::where('transaction_id', $transactionUuid)->first();
+                if ($payment) {
+                    // Update the payment status to 'success' 
+                    $payment->update([
+                        'payment_status' => 'paid',
+                    ]);
+
+                    // also update appointment status to confirmed
+                    $payment->appointment->update([
+                        'status' => 'confirmed'
+                    ]);
+
+                    return redirect()->route('view.my.appointment')->with('success', 'Payment successful!');
+                }
+
+                return redirect()->route('view.my.appointment')->with('error', 'Payment record not found!');
+            }
+
+            return redirect()->route('view.my.appointment')->with('error', 'Invalid response from eSewa!');
         }
     }
 
-    public function esewaPayFailure() {
-        $pid = $_GET['pid'];
-
-        $payment = Payment::where('pid', $pid)->first();
-        // $payment->payment_status = 'unpaid';
-        // $payment->save();
-
-        if($payment->payment_status == 'unpaid') {
-            return redirect()->route('patient.dashboard')->with( 'payment','Payment Failed');
-        }
-
+    public function esewaPayFailure(Request $request) {
+        return redirect()->route('patient.dashboard')->with( 'error','Payment Failed');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 }

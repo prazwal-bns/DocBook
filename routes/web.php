@@ -24,12 +24,14 @@ Route::post('/send-message', [HomeController::class, 'sendMessage'])->name('send
 
 
 Route::middleware(['auth','verified'])->group(function(){
+    Route::get('/payment/{appointmentId}/pay', [PaymentController::class, 'esewaPay'])->name('esewaPay');
+    
+    // Route::get('/payment/success', [PaymentController::class, 'esewaPaySuccess'])->name('payment.success');
+    Route::match(['get', 'post'],'/payment/success', [PaymentController::class, 'esewaPaySuccess'])->name('payment.success');
 
-    Route::post('/esewaPay/{appointmentId}', [PaymentController::class,'esewaPay'])->name('esewaPay');
-    Route::get ('/success',[PaymentController::class,'esewaPaySuccess'])->name('payment.success');
-    Route::get ('/failure',[PaymentController::class,'esewaPayFailure'])->name('payment.failure');
 
-    Route::resource('payments',PaymentController::class);
+    Route::get('/payment/failure', [PaymentController::class, 'esewaPayFailure'])->name('payment.failure');
+
 });
 
 
@@ -79,7 +81,7 @@ Route::middleware(['auth', 'role.redirect:patient'])->group(function () {
     Route::get('/view/doctorsSpecialization/{specializationId}',  [AppointmentController::class, 'viewDoctorsBySpecialization'])->name('view.doctorsBySpecialization');
 
     Route::get('/book/appointment/{doctorId}',  [AppointmentController::class, 'bookAppointment'])->name('book.appointment');
-    Route::post('/store/appointment',  [AppointmentController::class, 'storeAppointment'])->name('appointments.store');
+    Route::post('/store/appointment',  [AppointmentController::class, 'storeAppointment'])->name('store.my.appointments');
 
     Route::get('/view/my/appointment',  [AppointmentController::class, 'viewMyAppointment'])->name('view.my.appointment');
 

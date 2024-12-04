@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AppointmentController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProfileController as UserProfileController;
 use App\Http\Controllers\Api\V1\ScheduleController;
 use App\Http\Controllers\Api\V1\SpecializationController;
@@ -49,9 +50,21 @@ Route::prefix('V1')->group(function(){
     // Patient Routes
     Route::prefix('patient')->middleware(['auth:sanctum','role.redirect:patient'])->group(function(){
         Route::apiResource('appointments',AppointmentController::class);
-        Route::apiResource('specializations',SpecializationController::class)->only(['index']);
+        // Route::apiResource('specializations',SpecializationController::class)->only(['index']);
+
+        Route::get('view/all/specializations', [SpecializationController::class, 'viewAllSpecializations'])->name('view.all.specializations');
+
         Route::get('specialized/doctors/{specId}',[SpecializationController::class, 'viewAssociatedDoctors'])->name('view.specialized.doctors');
-        Route::get('view/doctor/schedule/{doctorId}',[ScheduleController::class, 'viewWeeklySchedules'])->name('view.schedule');
+        
+        Route::get('view/doctor/schedule/{doctorId}',[ScheduleController::class, 'viewWeeklySchedules'])->name('view.doctors.schedule');
+
+
+        // E-Sewa Payment
+        Route::match(['get', 'post'],'/payment/{appointmentId}/pay', [PaymentController::class, 'esewaPayApi'])->name('api.esewaPay');
+        
+        Route::match(['get', 'post'], '/payment/success', [PaymentController::class, 'esewaPaySuccessApi'])->name('api.payment.success');
+
+        Route::match(['get', 'post'], '/payment/failure', [PaymentController::class, 'esewaPayFailureApi'])->name('api.payment.failure');
     });
 
 });

@@ -9,7 +9,7 @@
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "remotemerge/esewa-php-sdk": "*"
+        "xentixar/esewa-sdk": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
