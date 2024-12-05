@@ -25,11 +25,12 @@ class AppointmentResource extends JsonResource
             'appointment_reason' => $this->appointment_reason
         ];
 
-        if(Auth::user()->role === 'doctor'){
-            $data['patient_name'] =  $this->patient->user->name;
-        } elseif(Auth::user()->role === 'patient'){
+        if (Auth::check() && Auth::user()->role === 'doctor') {
+            $data['patient_name'] = $this->patient->user->name;
+        } elseif (Auth::check() && Auth::user()->role === 'patient') {
             $data['doctor_name'] = $this->doctor->user->name;
         }
+        
 
         return $data;
 

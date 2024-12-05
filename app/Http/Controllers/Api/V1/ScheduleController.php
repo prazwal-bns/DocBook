@@ -22,6 +22,15 @@ class ScheduleController extends Controller
         $this->scheduleService = $scheduleService;
     }
 
+    /**
+        *
+        * Get Doctor's Schedule
+        *
+            * - Retrieves the logged-in doctor's schedule.
+            * - If no schedule is found for the doctor, returns a message indicating the absence of a schedule.
+            * - If the schedule exists, returns the doctor's schedule data in the response.
+        *
+    */
 
     public function index()
     {
@@ -42,8 +51,17 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
+        *
+        * Store Doctor's Schedule for a Week
+        *
+            * - Retrieves the logged-in doctor using `auth()->user()->doctor`.
+            * - Calls the `createSchedule` method of the `ScheduleService` to create a schedule for the doctor.
+            * - If the schedule creation fails (error status), returns an error response with the corresponding message.
+            * - If successful, creates the schedule for the week and returns a success response with the success message.
+            * - Handles the creation of schedules and manages the response based on the result.
+        *
+    */
+
     public function store(Request $request)
     {
         $doctor = auth()->user()->doctor;
@@ -67,8 +85,17 @@ class ScheduleController extends Controller
 
 
     /**
-     * Display the specified resource.
-     */
+        *
+        * Show Doctor's Schedule for a Specific Day
+        *
+            * - Converts the given `id` to the proper case (first letter capitalized).
+            * - Retrieves the logged-in doctor's schedule for the specified day.
+            * - If no schedule is found for the doctor on that day, returns a 404 error with a relevant message.
+            * - If a schedule is found, returns the schedule data in the response with a success status.
+            * - The schedule is wrapped in a `ScheduleResource` to format the response appropriately.
+        *
+    */
+
     public function show(string $id)
     {
         $day = ucfirst(strtolower($id));  
@@ -95,8 +122,17 @@ class ScheduleController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
+        *
+        * Update Doctor's Schedule for a Specific Day
+        *
+            * - Retrieves the logged-in doctor's information.
+            * - Calls the `updateSchedule` method from the `ScheduleService` to handle the update logic.
+            * - If the update fails or returns an error, returns a 422 error with an appropriate error message.
+            * - If the update is successful, returns a success response with the updated schedule data formatted by `ScheduleResource`.
+            * - The schedule data is returned in the response, including the success message.
+        *
+    */
+
 
     public function update(Request $request, string $day)
     {
@@ -119,6 +155,19 @@ class ScheduleController extends Controller
         ], 200);
     }
 
+    /**
+        *
+        * Delete Doctor's Schedules
+        *
+            * - Retrieves the logged-in doctor's ID.
+            * - Checks if the doctor has any associated appointments.
+            * - If the doctor has appointments, returns a 400 error with a message indicating schedules cannot be deleted.
+            * - If no appointments are associated, deletes all schedules for the current doctor.
+            * - Returns a success response with a confirmation message upon successful deletion of the schedules.
+        *
+    */
+
+
     public function destroy(Request $request)
     {
         $doctorId = auth()->user()->doctor->id; 
@@ -140,6 +189,19 @@ class ScheduleController extends Controller
         ], 200);
     }
     // end function
+
+    /**
+        *
+        * View Doctor's Weekly Schedules
+        *
+            * - Retrieves the doctor by the provided doctorId.
+            * - If the doctor doesn't exist, returns a 404 error with a message indicating the doctor does not exist.
+            * - If the doctor is marked as 'not_available', returns a 400 error with a message indicating the doctor is not available.
+            * - Retrieves the doctor's schedules.
+            * - If no schedules are found, returns a 404 error indicating there are no available schedules.
+            * - If schedules are found, returns a success response with the doctor's weekly schedule.
+        *
+    */
 
     public function viewWeeklySchedules($doctorId)
     {

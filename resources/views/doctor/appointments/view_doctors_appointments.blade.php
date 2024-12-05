@@ -101,6 +101,9 @@
                     @endforeach
                 </tbody>
             </table>
+            <div class="mt-4 " style=" background-color: white;">
+                {{ $appointmentData->links() }}
+            </div>
         @endif
 
     @endif

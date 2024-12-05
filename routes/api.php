@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AppointmentController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProfileController as UserProfileController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\ScheduleController;
 use App\Http\Controllers\Api\V1\SpecializationController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -44,6 +45,11 @@ Route::prefix('V1')->group(function(){
         Route::get('/view/my/appointments', [AppointmentController::class, 'viewAllAppointments'])->name('view.all.appointments');
         Route::put('update/patient-apt-status/{appointmentId}', [AppointmentController::class, 'updateAppointmentStatus'])->name('update.appointment.status');
 
+        
+        Route::post('give/review/to-patient/{appointmentId}', [ReviewController::class, 'saveReview']);
+
+        Route::get('view/patient/review/{appointmentId}', [ReviewController::class, 'viewAppointmentReview']);
+
     });
 
 
@@ -58,6 +64,7 @@ Route::prefix('V1')->group(function(){
         
         Route::get('view/doctor/schedule/{doctorId}',[ScheduleController::class, 'viewWeeklySchedules'])->name('view.doctors.schedule');
 
+        Route::get('view/doctor/review/{appointmentId}', [ReviewController::class, 'viewDoctorAppointmentReview']);
 
         // E-Sewa Payment
         Route::match(['get', 'post'],'/payment/{appointmentId}/pay', [PaymentController::class, 'esewaPayApi'])->name('api.esewaPay');

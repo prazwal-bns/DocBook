@@ -21,9 +21,6 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     // public function index()
     // {
     //     $users = User::with('patient','doctor')->get();
@@ -34,7 +31,16 @@ class UserController extends Controller
     //     ], 200);
     // }
 
-    // For paginated data
+    /**
+        *
+        * Fetch and Paginate Users with Associated Patient and Doctor Data
+        *
+            * - Retrieves users along with their associated patient and doctor data.
+            * - Returns paginated results, including metadata like total count, current page, and page limits.
+            * - If data is available, it is returned successfully along with pagination details.
+        *
+    */
+
     public function index()
     {
         $users = User::with('patient', 'doctor')->paginate(2); 
@@ -54,9 +60,17 @@ class UserController extends Controller
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     */
+   /**
+        *
+        * Register a New User and Generate an API Token
+        *
+            * - Validates the incoming request data for user registration.
+            * - Calls the user service to register the user with the provided data.
+            * - Generates an API token for the newly registered user.
+            * - Returns a response with the user data and the generated token.
+        *
+    */
+
     public function store(RegisterUserRequest $request)
     {
         $data = $request->validated();
@@ -75,8 +89,15 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
+        *
+        * Retrieve User Data by ID
+        *
+            * - Finds the user with the specified ID and includes related patient and doctor data.
+            * - If the user is not found, returns a 404 error response.
+            * - Returns the user data wrapped in a resource if found.
+        *
+    */
+
     public function show($id)
     {
         $user = User::with('patient','doctor')->find($id);
@@ -93,8 +114,16 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
+        *
+        * Update User Profile Data
+        *
+            * - Validates and updates the user's profile data, including optional password change.
+            * - If the user is a patient, updates the patient-specific fields like gender and date of birth.
+            * - If the user is a doctor, updates doctor-specific fields like specialization, bio, and status.
+            * - Returns a success message along with the updated user data.
+        *
+    */
+
     public function update(UpdateProfileRequest $request, User $user)
     {
         $data = $request->validated();
@@ -129,8 +158,17 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     */
+        *
+        * Delete User and Related Records
+        *
+            * - Attempts to find and delete a user based on the provided ID.
+            * - If the user has a 'patient' role, deletes the associated patient record.
+            * - If the user has a 'doctor' role, deletes the associated doctor record.
+            * - If the user is found, deletes the user and returns a success message.
+            * - Handles exceptions for user not found and any other errors that occur during deletion.
+        *
+    */
+
     public function destroy($id)
     {
         try {

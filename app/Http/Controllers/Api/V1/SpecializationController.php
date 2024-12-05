@@ -12,8 +12,15 @@ use Illuminate\Http\Request;
 class SpecializationController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
+        *
+        * Retrieve All Specializations [Admin]
+        *
+            * - Fetches all specializations from the database.
+            * - Returns a success response with the list of specializations.
+            * - If there are no specializations, it returns an empty list.
+        *
+    */
+
     public function index()
     {
         $specializations = Specialization::all();
@@ -23,6 +30,16 @@ class SpecializationController extends Controller
         ],200);
     }
 
+    /**
+        *
+        * Retrieve All Specializations for [Patient]
+        *
+            * - Fetches all specializations from the database.
+            * - Returns a success response with the list of specializations.
+            * - If there are no specializations, it returns an empty list.
+        *
+    */
+
     public function viewAllSpecializations(){
         $specializations = Specialization::all();
         return response()->json([
@@ -31,9 +48,16 @@ class SpecializationController extends Controller
         ],200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+   /**
+        *
+        * Store New Specialization - [Admin]
+        *
+            * - Validates and stores a new specialization in the database.
+            * - Ensures that the specialization name is provided and is a string of a maximum length of 255 characters.
+            * - Returns a success response with the created specialization data.
+        *
+    */
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -49,8 +73,15 @@ class SpecializationController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
+        *
+        * Retrieve a particular Specialization data via ID - [Admin]
+        *
+            * - Retrieves a specialization by its ID.
+            * - If the specialization is found, returns a success response with the specialization data.
+            * - If the specialization is not found, catches the exception and returns a 404 error with an appropriate message.
+        *
+    */
+
     public function show(string $id)
     {
         try {
@@ -69,8 +100,16 @@ class SpecializationController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
+        *
+        * Update a particular Specialization data via ID - [Admin]
+        *
+            * - Updates the name of the specialization with the given ID.
+            * - If the specialization is found, it will be updated with the new data.
+            * - If the specialization is not found, the exception is caught and a 404 error is returned.
+            * - Requires the `name` field to be provided in the request.
+        *
+    */
+
     public function update(Request $request, string $id)
     {
         $data = $request->validate(['name'=>'required']);
@@ -92,8 +131,16 @@ class SpecializationController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     */
+        *
+        * Delete Specialization and Related Doctors - [Admin]
+        *
+            * - Deletes the specialization along with all related doctors and their user accounts.
+            * - If the specialization with the provided ID is found, the associated doctors and their user accounts are also deleted.
+            * - If the specialization is not found, a 404 error is returned.
+            * - Ensures that all data linked to the specialization (doctors and user accounts) are removed.
+        *
+    */
+
     public function destroy(string $id)
     {
         try {
@@ -121,6 +168,16 @@ class SpecializationController extends Controller
     }
     // end function
 
+    /**
+        *
+        * View Doctors Associated with a Specialization - [Patient]
+        *
+            * - Retrieves doctors associated with a given specialization ID.
+            * - Filters doctors based on their availability and having schedules.
+            * - If no doctors are available or the specialization does not exist, appropriate messages are returned.
+            * - If doctors are available, their information and the specialization details are returned successfully.
+        *
+    */
     public function viewAssociatedDoctors($specializationId){
         $doctors = Doctor::where('specialization_id', $specializationId)
             ->whereHas('schedules')

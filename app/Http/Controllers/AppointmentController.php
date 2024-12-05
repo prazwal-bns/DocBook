@@ -87,7 +87,7 @@ class AppointmentController extends Controller
         $doctorId = Doctor::where('user_id',$userId)->value('id');
 
         $schedules = Schedule::where('doctor_id',$doctorId)->get();
-        $appointmentData = Appointment::where('doctor_id', $doctorId)->latest()->get();
+        $appointmentData = Appointment::where('doctor_id', $doctorId)->latest()->paginate(5);
 
         return view('doctor.appointments.view_doctors_appointments', compact('appointmentData','schedules'));
     }
@@ -188,20 +188,50 @@ class AppointmentController extends Controller
     }
     // end function
 
+    // public function updateMyAppointment(AppointmentRequest $request, $appointmentId)
+    // {
+    //     $appointment = Appointment::findOrFail($appointmentId);
+
+    //     // Gate::authorize('update',$appointment);
+
+    //     // Step 2: Use the service to update the appointment
+    //     try {
+    //         $this->appointmentService->updateAppointment($appointment, $request->validated());
+    //         return redirect()->route('view.my.appointment')->with('success', 'Appointment updated successfully!');
+    //     } catch (\Exception $e) {
+    //         return back()->with('error', $e->getMessage());
+    //     }
+    // }
+
     public function updateMyAppointment(AppointmentRequest $request, $appointmentId)
     {
         $appointment = Appointment::findOrFail($appointmentId);
 
-        // Gate::authorize('update',$appointment);
+        // Step 1: Ensure the patient can't change the doctor
+        // Retrieve the existing doctor_id from the appointment
+        $validatedData = $request->validated();
+
+        // Ensure 'doctor_id' is not part of the update payload
+        if (isset($validatedData['doctor_id'])) {
+            unset($validatedData['doctor_id']); // Remove doctor_id from the request data
+        }
+
+        // Set the doctor_id from the existing appointment (patient can't change doctor)
+        $validatedData['doctor_id'] = $appointment->doctor_id;
 
         // Step 2: Use the service to update the appointment
         try {
-            $this->appointmentService->updateAppointment($appointment, $request->validated());
+            // Pass the updated data to the service for processing
+            $this->appointmentService->updateAppointment($appointment, $validatedData);
+
+            // Redirect back with success message
             return redirect()->route('view.my.appointment')->with('success', 'Appointment updated successfully!');
         } catch (\Exception $e) {
+            // In case of an error, redirect back with the error message
             return back()->with('error', $e->getMessage());
         }
     }
+
     // end function
 
     public function deleteMyAppointment($appointmentId){

@@ -115,7 +115,7 @@ class PaymentController extends Controller
 {
     // Decode Esewa response
     $esewa = new Esewa();
-    $response = $esewa->decode($request);
+    $response = $esewa->decode();
 
     // Convert the JsonResponse to an array using getData()
     $responseData = $response->getData(true);  // true to return as array

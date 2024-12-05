@@ -16,24 +16,15 @@ use Illuminate\Validation\ValidationException;
 class ProfileController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
+        *
+        * Fetch User Profile
+        *
+            * - Retrieves the profile information of the authenticated user.
+            * - Returns the user's profile data wrapped in a resource format.
+            * - If successful, returns the user's profile with a success message.
+        *
+    */
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show()
     {
         $user = auth()->user(); // Get the logged-in user
@@ -44,8 +35,16 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
+        *
+        * Update User Profile
+        *
+            * - Updates the profile information of the authenticated user.
+            * - If the user is a patient, updates patient-specific fields like gender and date of birth.
+            * - If the user is a doctor, updates doctor-specific fields like specialization, bio, and status.
+            * - Returns the updated profile data with a success message.
+        *
+    */
+
     public function update(UpdateProfileRequest $request)
     {
         $user = auth()->user(); // Get the logged-in user
@@ -75,13 +74,17 @@ class ProfileController extends Controller
         ], 200);
     }
 
+
     /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+        *
+        * Change User Password
+        *
+            * - Validates the current password to ensure it matches the stored password.
+            * - If the current password is incorrect, throws a validation exception with an error message.
+            * - If the current password is correct, updates the password to the new one provided.
+            * - Returns a success message indicating the password was changed successfully.
+        *
+    */
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse{
         $data = $request->validated();
