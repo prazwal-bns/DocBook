@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Stripe\Stripe;
+use Stripe\Charge;
+use Stripe\Exception\CardException;
+use Illuminate\Support\Facades\Crypt;
 use Xentixar\EsewaSdk\Esewa;
 
 class PaymentController extends Controller
@@ -34,10 +38,8 @@ class PaymentController extends Controller
     }
 
     public function esewaPaySuccess(Request $request) {
-
-
         $esewa = new Esewa();
-        $response = $esewa->decode($request);
+        $response = $esewa->decode();
 
         // dd($response);
 
@@ -70,4 +72,50 @@ class PaymentController extends Controller
         return redirect()->route('patient.dashboard')->with( 'error','Payment Failed');
     }
 
+    // Stripe Payment Intergration
+
+
+    public function stripe($encryptedId)
+    {
+        try {
+            // $appointmentId = Crypt::decrypt($encryptedId);
+            return view('patient.payments.stripe', compact('encryptedId'));
+        } catch (\Exception $e) {
+            abort(403, 'Invalid or expired appointment ID.');
+        }
+    }
+
+    public function stripePost(Request $request) {
+        // Set Stripe API key
+        // dd(env('STRIPE_SECRET'));
+        Stripe::setApiKey(config('stripe.stripe_sk'));
+        // Stripe::setApiKey('sk_test_51QSzAgGD49l9BuIFULujsIb2wuof4pBqLSk6QeyeLvp0WxHFSASsnyJpI3KKBAAKoR18Y9cmW8VVTxlHTlPfKGXj003IuoQML8');
+        
+        try {
+            $charge = \Stripe\Charge::create([
+                'source' => $request->stripeToken,
+                'description' => 'Payment for Appointment',
+                'amount' => 20000, // Amount in cents (e.g., $500.00)
+                'currency' => 'usd',
+            ]);
+
+            $appointmentId = Crypt::decrypt($request->appointment_id);
+            $appointment = Appointment::findOrFail($appointmentId);
+
+            $appointment->payment->update([
+                'payment_status' => 'paid'
+            ]);
+
+            $appointment->update([
+                'status' => 'confirmed'
+            ]);
+    
+            return redirect()->route('view.my.appointment')->with('success', 'Payment was successful!');
+        } catch (CardException $e) {
+            return redirect()->back()->with('error', 'Payment failed: ' . $e->getMessage());
+        }
+    }
+
+
+    
 }

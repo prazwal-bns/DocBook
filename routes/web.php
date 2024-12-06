@@ -28,9 +28,13 @@ Route::middleware(['auth','verified'])->group(function(){
     
     // Route::get('/payment/success', [PaymentController::class, 'esewaPaySuccess'])->name('payment.success');
     Route::match(['get', 'post'],'/payment/success', [PaymentController::class, 'esewaPaySuccess'])->name('payment.success');
-
-
     Route::get('/payment/failure', [PaymentController::class, 'esewaPayFailure'])->name('payment.failure');
+
+    // Stripe payment
+    Route::controller(PaymentController::class)->group(function(){
+        Route::get('/stripe/payment/{appointmentId}', 'stripe')->name('stripe.payment');
+        Route::post('/stripe/payment', 'stripePost')->name('stripe.post');
+    });
 
 });
 

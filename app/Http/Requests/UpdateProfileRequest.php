@@ -26,7 +26,7 @@ class UpdateProfileRequest extends FormRequest
 
         // Base validation rules for the common user fields
         $rules = [
-            'name' => 'nullable|string|max:255',
+            'name' => 'nulalble|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $userId,
             'address' => 'nullable|string',
             'phone' => 'nullable|string',

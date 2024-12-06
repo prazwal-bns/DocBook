@@ -11,6 +11,7 @@ use App\Models\Patient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
@@ -73,6 +74,8 @@ class ProfileController extends Controller
             'data' => new UserResource($user)
         ], 200);
     }
+
+
 
 
     /**
