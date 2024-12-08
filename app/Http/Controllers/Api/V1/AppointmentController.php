@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Resources\DoctorResource;
 use App\Mail\AppointmentSent;
 use App\Models\Payment;
 use App\Services\AppointmentService;
@@ -288,63 +289,16 @@ class AppointmentController extends Controller
     }
 
 
-    /**
-        *
-        * Update the Status of an Appointment
-        *
-            * - Validates the new status for the appointment, ensuring it is one of: pending, confirmed, or completed.
-            * - Finds the appointment by ID and returns a 404 error if not found.
-            * - Checks if the status transition is valid based on the current status of the appointment.
-            * - If the transition is invalid, returns a 400 error indicating the invalid status change.
-            * - If the transition is valid, updates the appointment status and saves it.
-            * - Returns a success response with the updated appointment data.
-        *
+   /**
+         * Update the status of an appointment.
+         *
+         * - Validates the request and updates the status of an appointment if the user is authorized.
+         * - For appointment status to be confirmed payment must be paid by patient.
+         * - Ensures that only valid transitions are allowed ('confirmed' to 'completed').
+         * - Returns appropriate JSON responses for success or error scenarios.
+         * 
     */
 
-    // public function updateAppointmentStatus(Request $request, $appointmentId)
-    // {
-    //     $validatedData = $request->validate([
-    //         'status' => 'required|in:confirmed,completed',
-    //     ]);
-
-    //     $appointment = Appointment::find($appointmentId);
-    
-    //     // If the appointment does not exist, return a 404 error
-    //     if (!$appointment) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'Appointment not found.',
-    //         ], 404);
-    //     }
-    
-    //     // Define valid status transitions
-    //     $validTransitions = [
-    //         'pending' => ['confirmed'],
-    //         'confirmed' => ['completed'],
-    //         'completed' => [],
-    //     ];
-    
-    //     $currentStatus = $appointment->status;
-    //     $newStatus = $validatedData['status'];
-    
-    //     if (!in_array($newStatus, $validTransitions[$currentStatus])) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
-    //         ], 400);
-    //     }
-    
-    //     $appointment->status = $newStatus;
-    //     $appointment->save();
-    
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'Appointment status updated successfully.',
-    //         'data' => [
-    //             'appointment' => $appointment,
-    //         ],
-    //     ], 200);
-    // }
 
     public function updateAppointmentStatus(Request $request, $appointmentId)
     {
@@ -398,6 +352,33 @@ class AppointmentController extends Controller
             'status' => 'error',
             'message' => 'Invalid status change attempt.',
         ], 400);
+    }
+
+
+    public function searchByDoctorName(Request $request)
+    {
+        $validated = $request->validate([
+            'doctor_name' => 'required|string|max:255',
+        ]);
+        $searchQuery = $validated['doctor_name'];
+        
+        $doctors = Doctor::whereHas('user', function ($query) use ($searchQuery) {
+            $query->where('name', 'like', '%' . $searchQuery . '%');
+        })
+        ->with(['user', 'specialization']) // Include related user and specialization details
+        ->get();
+
+        if($doctors->isEmpty()) {
+            return response()->json([
+                'message' => 'No doctors match your search criteria at the moment.'   
+            ],200);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Search Results for ' . $searchQuery . '.',
+            'data' =>  DoctorResource::collection($doctors),
+        ],200);
     }
 
     

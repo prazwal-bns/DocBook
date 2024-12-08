@@ -56,6 +56,8 @@ Route::prefix('V1')->group(function(){
     // Patient Routes
     Route::prefix('patient')->middleware(['auth:sanctum','role.redirect:patient'])->group(function(){
         Route::apiResource('appointments',AppointmentController::class);
+
+        Route::get('/search/doctors', [AppointmentController::class, 'searchByDoctorName']);
         // Route::apiResource('specializations',SpecializationController::class)->only(['index']);
 
         Route::get('view/all/specializations', [SpecializationController::class, 'viewAllSpecializations'])->name('view.all.specializations');
