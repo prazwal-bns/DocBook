@@ -127,6 +127,13 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::find($id);
         
+        // Gate::authorize('view',$appointment);
+        if(Gate::denies('view',$appointment)){
+            return response()->json([
+               'message' => 'You are not authorized to view this appointment.'
+            ], 403);
+        }
+
         if(!$appointment){
             return response()->json([
                 'message' => 'Appointment Not Found'
@@ -294,49 +301,104 @@ class AppointmentController extends Controller
         *
     */
 
+    // public function updateAppointmentStatus(Request $request, $appointmentId)
+    // {
+    //     $validatedData = $request->validate([
+    //         'status' => 'required|in:confirmed,completed',
+    //     ]);
+
+    //     $appointment = Appointment::find($appointmentId);
+    
+    //     // If the appointment does not exist, return a 404 error
+    //     if (!$appointment) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'Appointment not found.',
+    //         ], 404);
+    //     }
+    
+    //     // Define valid status transitions
+    //     $validTransitions = [
+    //         'pending' => ['confirmed'],
+    //         'confirmed' => ['completed'],
+    //         'completed' => [],
+    //     ];
+    
+    //     $currentStatus = $appointment->status;
+    //     $newStatus = $validatedData['status'];
+    
+    //     if (!in_array($newStatus, $validTransitions[$currentStatus])) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
+    //         ], 400);
+    //     }
+    
+    //     $appointment->status = $newStatus;
+    //     $appointment->save();
+    
+    //     return response()->json([
+    //         'status' => 'success',
+    //         'message' => 'Appointment status updated successfully.',
+    //         'data' => [
+    //             'appointment' => $appointment,
+    //         ],
+    //     ], 200);
+    // }
+
     public function updateAppointmentStatus(Request $request, $appointmentId)
     {
-        $validatedData = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed',
+        // Find the appointment or return a 404 error
+        $appointment = Appointment::findOrFail($appointmentId);
+
+        // Check if the authenticated user is the doctor assigned to the appointment
+        $doctor = Auth::user()->doctor;
+        if (!$doctor || $appointment->doctor_id !== $doctor->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You are not authorized to edit this appointment.',
+            ], 403);
+        }
+
+        // Check if the appointment is already completed
+        if ($appointment->status === 'completed') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This appointment is already completed and cannot be edited.',
+            ], 403);
+        }
+
+        // Check if the appointment is still pending
+        if ($appointment->status === 'pending') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment for this appointment is still pending and cannot be edited at the moment.',
+            ], 403);
+        }
+
+        // Validate the incoming status change
+        $validated = $request->validate([
+            'status' => ['required', 'in:confirmed,completed'],
         ]);
 
-        $appointment = Appointment::find($appointmentId);
-    
-        // If the appointment does not exist, return a 404 error
-        if (!$appointment) {
+        // Handle status transitions
+        if ($appointment->status === 'confirmed' && $request->status === 'completed') {
+            $appointment->update(['status' => 'completed']);
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Appointment not found.',
-            ], 404);
+                'status' => 'success',
+                'message' => 'Appointment status updated successfully.',
+                'data' => [
+                    'appointment' => $appointment,
+                ],
+            ], 200);
         }
-    
-        // Define valid status transitions
-        $validTransitions = [
-            'pending' => ['confirmed'],
-            'confirmed' => ['completed'],
-            'completed' => [],
-        ];
-    
-        $currentStatus = $appointment->status;
-        $newStatus = $validatedData['status'];
-    
-        if (!in_array($newStatus, $validTransitions[$currentStatus])) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
-            ], 400);
-        }
-    
-        $appointment->status = $newStatus;
-        $appointment->save();
-    
+
         return response()->json([
-            'status' => 'success',
-            'message' => 'Appointment status updated successfully.',
-            'data' => [
-                'appointment' => $appointment,
-            ],
-        ], 200);
+            'status' => 'error',
+            'message' => 'Invalid status change attempt.',
+        ], 400);
     }
+
     
 }

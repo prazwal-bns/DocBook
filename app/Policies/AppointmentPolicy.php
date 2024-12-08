@@ -21,7 +21,7 @@ class AppointmentPolicy
      */
     public function view(User $user, Appointment $appointment): bool
     {
-        //
+        return $user->patient->id == $appointment->patient_id;
     }
 
     /**
@@ -39,6 +39,12 @@ class AppointmentPolicy
     {
         return $user->patient->id == $appointment->patient_id;
     }
+
+    public function payment(User $user, Appointment $appointment): bool
+    {
+        return $user->patient->id == $appointment->patient_id;
+    }
+
 
     /**
      * Determine whether the user can delete the model.

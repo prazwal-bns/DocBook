@@ -28,15 +28,15 @@
 
     <script>
         // Initialize Stripe and create an instance of Elements
-        const stripe = Stripe('pk_test_51QSzAgGD49l9BuIFDH9CL99P2OIjFRf0x6a5z6SzzXsVLSStYh29N6KXbGH7HZpoaP3Tq74saUgu3ll9x0IW9zIv00g9gQYprW');  // Replace with your Stripe public key
+        const stripe = Stripe('pk_test_51QSzAgGD49l9BuIFDH9CL99P2OIjFRf0x6a5z6SzzXsVLSStYh29N6KXbGH7HZpoaP3Tq74saUgu3ll9x0IW9zIv00g9gQYprW');  
         const elements = stripe.elements();
 
         // Create an instance of the card Element
         const card = elements.create('card');
-        card.mount('#card-element');  // Mount the card element to the div
+        card.mount('#card-element'); 
 
         // Get the appointment ID from the Blade template (passed from the backend)
-        const appointmentId = {{ $appointment->id }};  // Make sure to replace with the actual appointment ID
+        const appointmentId = {{ $appointment->id }};  
 
         // Button click event to generate token
         document.getElementById('generate-token').addEventListener('click', async () => {
@@ -50,20 +50,20 @@
             // Display the token in the <h1> tag
             document.getElementById('token-display').textContent = `Generated Token: ${token.id}`;
 
-            // Send the token and appointment_id to the backend for payment processing
-            fetch(`/api/stripe/payment/${appointmentId}`, { // Use dynamic appointment ID
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    stripeToken: token.id,  // This is the token you should pass
-                    appointment_id: appointmentId, // Pass the dynamic appointment ID
-                }),
-            })
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(err => console.log(err));
+            // // Send the token and appointment_id to the backend for payment processing
+            // fetch(`/api/stripe/payment/${appointmentId}`, { // Use dynamic appointment ID
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //     },
+            //     body: JSON.stringify({
+            //         stripeToken: token.id,  // This is the token you should pass
+            //         appointment_id: appointmentId, // Pass the dynamic appointment ID
+            //     }),
+            // })
+            // .then(response => response.json())
+            // .then(data => console.log(data))
+            // .catch(err => console.log(err));
         });
     </script>
 
