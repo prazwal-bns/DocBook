@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Doctor;
 use App\Models\Patient;
 use App\Models\User;
 use App\Services\UserService;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -20,22 +21,56 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
+    // public function index()
+    // {
+    //     $users = User::with('patient','doctor')->get();
+
+    //     return response()->json([
+    //         'message' => 'Data Fetched Successfully !!',
+    //         'data' =>  UserResource::collection($users)
+    //     ], 200);
+    // }
+
     /**
-     * Display a listing of the resource.
-     */
+        *
+        * Fetch and Paginate Users with Associated Patient and Doctor Data
+        *
+            * - Retrieves users along with their associated patient and doctor data.
+            * - Returns paginated results, including metadata like total count, current page, and page limits.
+            * - If data is available, it is returned successfully along with pagination details.
+        *
+    */
+
     public function index()
     {
-        $users = User::with('patient','doctor')->get();
+        $users = User::with('patient', 'doctor')->paginate(2); 
 
         return response()->json([
             'message' => 'Data Fetched Successfully !!',
-            'data' => $users
+            'data' => UserResource::collection($users->items()), 
+            'pagination' => [
+                'total' => $users->total(),
+                'per_page' => $users->perPage(),
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'from' => $users->firstItem(),
+                'to' => $users->lastItem(),
+            ]
         ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
+   /**
+        *
+        * Register a New User and Generate an API Token
+        *
+            * - Validates the incoming request data for user registration.
+            * - Calls the user service to register the user with the provided data.
+            * - Generates an API token for the newly registered user.
+            * - Returns a response with the user data and the generated token.
+        *
+    */
+
     public function store(RegisterUserRequest $request)
     {
         $data = $request->validated();
@@ -54,8 +89,15 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
+        *
+        * Retrieve User Data by ID
+        *
+            * - Finds the user with the specified ID and includes related patient and doctor data.
+            * - If the user is not found, returns a 404 error response.
+            * - Returns the user data wrapped in a resource if found.
+        *
+    */
+
     public function show($id)
     {
         $user = User::with('patient','doctor')->find($id);
@@ -67,13 +109,21 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User Data Fetched Successfully !!',
-            'data' => $user
+            'data' => new UserResource($user)
         ],200);
     }
 
     /**
-     * Update the specified resource in storage.
-     */
+        *
+        * Update User Profile Data
+        *
+            * - Validates and updates the user's profile data, including optional password change.
+            * - If the user is a patient, updates the patient-specific fields like gender and date of birth.
+            * - If the user is a doctor, updates doctor-specific fields like specialization, bio, and status.
+            * - Returns a success message along with the updated user data.
+        *
+    */
+
     public function update(UpdateProfileRequest $request, User $user)
     {
         $data = $request->validated();
@@ -108,25 +158,46 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     */
+        *
+        * Delete User and Related Records
+        *
+            * - Attempts to find and delete a user based on the provided ID.
+            * - If the user has a 'patient' role, deletes the associated patient record.
+            * - If the user has a 'doctor' role, deletes the associated doctor record.
+            * - If the user is found, deletes the user and returns a success message.
+            * - Handles exceptions for user not found and any other errors that occur during deletion.
+        *
+    */
+
     public function destroy($id)
     {
-        $user = User::findOrFail($id);
-
-        if ($user->role === 'patient') {
-            $user->patient()->delete();
+        try {
+            $user = User::findOrFail($id);
+    
+            if ($user->role === 'patient') {
+                $user->patient()->delete();
+            }
+    
+            if ($user->role === 'doctor') {
+                $user->doctor()->delete();
+            }
+    
+            $user->delete();
+    
+            return response()->json([
+                'message' => 'User and related records deleted successfully!'
+            ], 200);
+    
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'The user with the specified ID does not exist.',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An error occurred while trying to delete the user.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        if ($user->role === 'doctor') {
-            $user->doctor()->delete();
-        }
-
-        $user->delete();
-
-        return response()->json([
-            'message' => 'User and related records deleted successfully!'
-        ], 200);
     }
 
 }

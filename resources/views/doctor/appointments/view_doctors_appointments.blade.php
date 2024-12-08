@@ -37,7 +37,8 @@
                         <th class="px-4 py-2 text-left">Day</th>
                         <th class="px-4 py-2 text-left">Start Time</th>
                         <th class="px-4 py-2 text-left">End Time</th>
-                        <th class="px-4 py-2 text-left">Status</th>
+                        <th class="px-4 py-2 text-left">Appointment Status</th>
+                        <th class="px-4 py-2 text-left">Payment Status</th>
                         <th class="px-4 py-2 text-center">Action</th>
                     </tr>
                 </thead>
@@ -58,6 +59,15 @@
                                     {{ ucfirst($appointment->status) }}
                                 </span>
 
+                            </td>
+                            
+                            <td class="px-4 py-2">
+                                @if($appointment->payment->payment_status == 'paid')
+                                    <span class="rounded-md px-2 py-1 text-sm font-semibold text-white bg-green-500">Paid</span>
+                                    
+                                @else
+                                    <span class="rounded-md px-2 py-1 text-xs font-semibold text-white bg-red-500">UnPaid</span>
+                                @endif
                             </td>
                             <td class="px-4 py-2 text-center">
                                 @if ($appointment->doctor->status == 'not_available')
@@ -91,6 +101,9 @@
                     @endforeach
                 </tbody>
             </table>
+            <div class="mt-4 " style=" background-color: white;">
+                {{ $appointmentData->links() }}
+            </div>
         @endif
 
     @endif

@@ -24,13 +24,18 @@ Route::post('/send-message', [HomeController::class, 'sendMessage'])->name('send
 
 
 Route::middleware(['auth','verified'])->group(function(){
-    // Route::get('/payment/create{appointment}', [PaymentController::class, ,'create'])->name('payment.create');
+    Route::get('/payment/{appointmentId}/pay', [PaymentController::class, 'esewaPay'])->name('esewaPay');
+    
+    // Route::get('/payment/success', [PaymentController::class, 'esewaPaySuccess'])->name('payment.success');
+    Route::match(['get', 'post'],'/payment/success', [PaymentController::class, 'esewaPaySuccess'])->name('payment.success');
+    Route::get('/payment/failure', [PaymentController::class, 'esewaPayFailure'])->name('payment.failure');
 
-    Route::post('/esewaPay/{appointmentId}', [PaymentController::class,'esewaPay'])->name('esewaPay');
-    Route::get ('/success',[PaymentController::class,'esewaPaySuccess'])->name('payment.success');
-    Route::get ('/failure',[PaymentController::class,'esewaPayFailure'])->name('payment.failure');
+    // Stripe payment
+    Route::controller(PaymentController::class)->group(function(){
+        Route::get('/stripe/payment/{appointmentId}', 'stripe')->name('stripe.payment');
+        Route::post('/stripe/payment', 'stripePost')->name('stripe.post');
+    });
 
-    Route::resource('payments',PaymentController::class);
 });
 
 
@@ -80,7 +85,7 @@ Route::middleware(['auth', 'role.redirect:patient'])->group(function () {
     Route::get('/view/doctorsSpecialization/{specializationId}',  [AppointmentController::class, 'viewDoctorsBySpecialization'])->name('view.doctorsBySpecialization');
 
     Route::get('/book/appointment/{doctorId}',  [AppointmentController::class, 'bookAppointment'])->name('book.appointment');
-    Route::post('/store/appointment',  [AppointmentController::class, 'storeAppointment'])->name('appointments.store');
+    Route::post('/store/appointment',  [AppointmentController::class, 'storeAppointment'])->name('store.my.appointments');
 
     Route::get('/view/my/appointment',  [AppointmentController::class, 'viewMyAppointment'])->name('view.my.appointment');
 
@@ -94,6 +99,7 @@ Route::middleware(['auth', 'role.redirect:patient'])->group(function () {
 
     Route::get('view/doctor/review/{appointmentId}', [ReviewController::class, 'viewDoctorReview'])->name('view.doctor.review');
 
+    Route::get('/payment/{appointmentId}', [PaymentController::class, 'generateToken'])->name('generate.token');
 
 });
 
@@ -132,6 +138,7 @@ Route::middleware(['auth', 'role.redirect:doctor'])->group(function () {
     Route::post('store/patient/review/{appointmentId}', [ReviewController::class, 'storeReview'])->name('store.patientReview');
 
     Route::get('view/patient/review/{appointmentId}', [ReviewController::class, 'viewYourReview'])->name('view.patient.review');
+
 
 });
 

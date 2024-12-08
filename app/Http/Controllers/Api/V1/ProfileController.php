@@ -3,54 +3,53 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Doctor;
 use App\Models\Patient;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
+        *
+        * Fetch User Profile
+        *
+            * - Retrieves the profile information of the authenticated user.
+            * - Returns the user's profile data wrapped in a resource format.
+            * - If successful, returns the user's profile with a success message.
+        *
+    */
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show()
     {
         $user = auth()->user(); // Get the logged-in user
         return response()->json([
             'message' => 'Profile fetched successfully!',
-            'data' => $user
+            'data' => new UserResource($user)
         ], 200);
     }
 
     /**
-     * Update the specified resource in storage.
-     */
+        *
+        * Update User Profile
+        *
+            * - Updates the profile information of the authenticated user.
+            * - If the user is a patient, updates patient-specific fields like gender and date of birth.
+            * - If the user is a doctor, updates doctor-specific fields like specialization, bio, and status.
+            * - Returns the updated profile data with a success message.
+        *
+    */
+
     public function update(UpdateProfileRequest $request)
     {
         $user = auth()->user(); // Get the logged-in user
         $data = $request->validated(); // Get validated data
-
-        // Update the User model data
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']); // Hash the new password
-        }
 
         $user->update($data); // Update the user data
 
@@ -72,15 +71,41 @@ class ProfileController extends Controller
 
         return response()->json([
             'message' => 'Profile updated successfully!',
-            'data' => $user
+            'data' => new UserResource($user)
         ], 200);
     }
 
+
+
+
     /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        *
+        * Change User Password
+        *
+            * - Validates the current password to ensure it matches the stored password.
+            * - If the current password is incorrect, throws a validation exception with an error message.
+            * - If the current password is correct, updates the password to the new one provided.
+            * - Returns a success message indicating the password was changed successfully.
+        *
+    */
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse{
+        $data = $request->validated();
+
+        $user = auth()->user();
+
+        if(!Hash::check($data['current_password'], $user->password)){
+            throw ValidationException::withMessages([
+                'current_password' => ['The provided current password does not match our records.'],
+            ]);
+        }
+
+        $user->password = Hash::make($data['new_password']);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password changed successfully!',
+        ], 200);
     }
+    // end function
 }

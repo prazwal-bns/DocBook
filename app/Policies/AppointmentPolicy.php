@@ -63,4 +63,23 @@ class AppointmentPolicy
     {
         //
     }
+
+    public function addReview(User $user, Appointment $appointment){
+        return $user->doctor->id === $appointment->doctor->id && $appointment->status=='completed';
+    }
+
+
+    // public function viewReview(User $user, Appointment $appointment)
+    // {
+    //     return $user->doctor->id == $appointment->doctor_id || $user->patient->id == $appointment->patient_id;
+    // }
+
+    public function viewReview(User $user, Appointment $appointment)
+    {
+        $isDoctor = $user->doctor && $user->doctor->id === $appointment->doctor_id;
+        $isPatient = $user->patient && $user->patient->id === $appointment->patient_id;
+
+        return $isDoctor || $isPatient;
+    }
+
 }

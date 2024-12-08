@@ -26,9 +26,8 @@ class UpdateProfileRequest extends FormRequest
 
         // Base validation rules for the common user fields
         $rules = [
-            'name' => 'nullable|string|max:255',
+            'name' => 'nulalble|string|max:255',
             'email' => 'nullable|email|unique:users,email,' . $userId,
-            'password' => 'nullable|string|min:6|confirmed',
             'address' => 'nullable|string',
             'phone' => 'nullable|string',
         ];
@@ -43,7 +42,7 @@ class UpdateProfileRequest extends FormRequest
         if ($this->user()->role === 'doctor') {
             $rules['specialization_id'] = 'nullable|exists:specializations,id';
             $rules['bio'] = 'nullable|string';
-            $rules['status'] = 'nullable|in:available,unavailable';
+            $rules['status'] = 'nullable|in:available,not_available';
         }
 
         return $rules;

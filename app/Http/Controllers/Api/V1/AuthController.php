@@ -23,40 +23,16 @@ class AuthController extends Controller
         $this->userService = $userService;
     }
 
-    // public function register(RegisterUserRequest $request){
-    //     $data = $request->validated();
-    //     $data['password'] = Hash::make($request->password);
-
-    //     $user = User::create($data);
-        
-    //         // Role-specific logic
-    //     if ($request->role === 'doctor') {
-    //         Doctor::create([
-    //             'user_id' => $user->id,
-    //             'specialization_id' => $request->specialization_id,
-    //             'status' => 'available',
-    //             'bio' => $request->input('bio') ?? null,
-    //         ]);
-    //     } elseif ($request->role === 'patient') {
-    //         Patient::create([
-    //             'user_id' => $user->id,
-    //             'gender' => $request->input('gender', ''),
-    //             'dob' => $request->input('dob') ?? null,
-    //         ]);
-    //     }
-
-    //     // Event for registration
-    //     event(new Registered($user));
-
-    //     $token = $user->createToken('api-token')->plainTextToken;
-
-    //     return response()->json([
-    //         'message' => 'User registered Successfully !!',
-    //         'user' => $user
-    //     ],200);
-        
-    // }
-    // end function
+    /**
+        *
+        * Register a New User
+        *
+            * - Validates the input data using the `RegisterUserRequest` class.
+            * - Registers the user using a service method and returns the created user.
+            * - Optionally generates an API token for the newly registered user.
+            * - Returns a success message along with the user details and the generated token.
+        *
+    */
 
     
     public function register(RegisterUserRequest $request)
@@ -75,6 +51,19 @@ class AuthController extends Controller
             'token' => $token,
         ], 200);
     }
+
+    /**
+        *
+        * User Login
+        *
+            * - Validates the input credentials using the `LoginUserRequest` class.
+            * - Checks if the user exists in the database by email.
+            * - Validates the password by comparing it with the stored hashed password.
+            * - If credentials are correct, generates an API token for the user.
+            * - If credentials are incorrect, returns a validation error.
+            * - Returns a success message along with the generated token.
+        *
+    */
     
     public function login(LoginUserRequest $request){
         
@@ -105,6 +94,16 @@ class AuthController extends Controller
     
     // end function
 
+
+    /**
+        *
+        * User Logout
+        *
+            * - Revokes all tokens associated with the authenticated user.
+            * - Ensures the user is logged out by deleting their active sessions.
+            * - Returns a success message upon successful logout.
+        *
+    */
 
     public function logout(Request $request){
         $request->user()->tokens()->delete();

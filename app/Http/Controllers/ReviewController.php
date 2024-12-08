@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ReviewController extends Controller
 {
@@ -59,6 +60,7 @@ class ReviewController extends Controller
     public function viewYourReview($appointmentId){
         $appointment = Appointment::findOrFail($appointmentId);
 
+        Gate::authorize('viewReview',$appointment);
 
         return view('doctor.reviews.view_my_review', compact('appointment'));
     }
@@ -67,7 +69,10 @@ class ReviewController extends Controller
     public function viewDoctorReview($appointmentId){
         $appointment = Appointment::findOrFail($appointmentId);
 
+        Gate::authorize('viewReview',$appointment);
+
         return view('patient.reviews.view_my_review', compact('appointment'));
     }
     // end function
+    
 }

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Mail\SendMessage;
+use App\Models\Appointment;
 use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 
 class HomeController extends Controller
@@ -25,5 +27,12 @@ class HomeController extends Controller
         Mail::to($user)->send(new SendMessage($name,$email,$contactMessage));
 
         return redirect()->back();
+    }
+
+    public function generateToken($appointmentId){
+        $appointmentId = Crypt::decrypt($appointmentId);
+        $appointment = Appointment::findOrFail($appointmentId);
+
+        return view('patient.payments.generate-token', compact('appointment'));
     }
 }

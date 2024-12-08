@@ -99,8 +99,8 @@ class UserSeeder extends Seeder
         Schedule::create([
             'doctor_id' => $doctor1->id,
             'day' => $day,
-            'start_time' => '06:00:00',
-            'end_time' => '07:00:00',
+            'start_time' => '06:00',
+            'end_time' => '18:00',
             'status' => 'available'
         ]);
     }
@@ -110,8 +110,8 @@ class UserSeeder extends Seeder
         Schedule::create([
             'doctor_id' => $doctor2->id,
             'day' => $day,
-            'start_time' => '06:00:00',
-            'end_time' => '07:00:00',
+            'start_time' => '06:00',
+            'end_time' => '18:00',
             'status' => 'available'
         ]);
     }
