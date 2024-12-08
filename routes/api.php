@@ -66,12 +66,10 @@ Route::prefix('V1')->group(function(){
 
         Route::get('view/doctor/review/{appointmentId}', [ReviewController::class, 'viewDoctorAppointmentReview']);
 
-        // E-Sewa Payment
-        Route::match(['get', 'post'],'/payment/{appointmentId}/pay', [PaymentController::class, 'esewaPayApi'])->name('api.esewaPay');
-        
-        Route::match(['get', 'post'], '/payment/success', [PaymentController::class, 'esewaPaySuccessApi'])->name('api.payment.success');
+        // Stripe Payment Gateway
+        Route::post('stripe/payment/{appointmentId}', [PaymentController::class, 'payViaStripe']);
 
-        Route::match(['get', 'post'], '/payment/failure', [PaymentController::class, 'esewaPayFailureApi'])->name('api.payment.failure');
+
     });
 
 });

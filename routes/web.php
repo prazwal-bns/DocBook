@@ -99,6 +99,7 @@ Route::middleware(['auth', 'role.redirect:patient'])->group(function () {
 
     Route::get('view/doctor/review/{appointmentId}', [ReviewController::class, 'viewDoctorReview'])->name('view.doctor.review');
 
+    Route::get('/payment/{appointmentId}', [PaymentController::class, 'generateToken'])->name('generate.token');
 
 });
 

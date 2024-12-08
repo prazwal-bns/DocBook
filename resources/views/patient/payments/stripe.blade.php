@@ -11,7 +11,7 @@
 </head>
 
 <body class="bg-gray-100 py-8">
-
+   
     <div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow-lg">
         <h1 class="text-3xl font-semibold text-center text-gray-700 mb-6">Pay with Stripe</h1>
         <form action="{{ route('stripe.post') }}" method="POST" id="payment-form">
@@ -83,6 +83,11 @@
             });
         });
     </script>
+
+    <div class="py-5 max-w-xl mx-auto p-6">
+        <a href="{{ route('generate.token', $encryptedId ) }}" class="block px-6 py-3 mt-4 text-white transition-all duration-300 bg-blue-600 rounded-lg hover:bg-blue-700">Generate Token for api</a>
+    </div>
+
 
 </body>
 

@@ -39,7 +39,7 @@ class PaymentController extends Controller
 
     public function esewaPaySuccess(Request $request) {
         $esewa = new Esewa();
-        $response = $esewa->decode();
+        $response = $esewa->decode($request);
 
         // dd($response);
 
@@ -51,6 +51,7 @@ class PaymentController extends Controller
                     // Update the payment status to 'success' 
                     $payment->update([
                         'payment_status' => 'paid',
+                        'payment_method' => 'esewa'
                     ]);
 
                     // also update appointment status to confirmed
@@ -89,21 +90,23 @@ class PaymentController extends Controller
         // Set Stripe API key
         // dd(env('STRIPE_SECRET'));
         Stripe::setApiKey(config('stripe.stripe_sk'));
-        // Stripe::setApiKey('sk_test_51QSzAgGD49l9BuIFULujsIb2wuof4pBqLSk6QeyeLvp0WxHFSASsnyJpI3KKBAAKoR18Y9cmW8VVTxlHTlPfKGXj003IuoQML8');
+      
         
         try {
-            $charge = \Stripe\Charge::create([
-                'source' => $request->stripeToken,
-                'description' => 'Payment for Appointment',
-                'amount' => 20000, // Amount in cents (e.g., $500.00)
-                'currency' => 'usd',
-            ]);
-
             $appointmentId = Crypt::decrypt($request->appointment_id);
             $appointment = Appointment::findOrFail($appointmentId);
 
+            
+            $charge = \Stripe\Charge::create([
+                'source' => $request->stripeToken,
+                'description' => 'Payment for Appointment with '. $appointment->doctor->user->name,
+                'amount' => 100000,  // Amount in cents (e.g., $500.00)
+                'currency' => 'NPR',
+            ]);
+
             $appointment->payment->update([
-                'payment_status' => 'paid'
+                'payment_status' => 'paid',
+                'payment_method' => 'stripe'
             ]);
 
             $appointment->update([
@@ -114,6 +117,15 @@ class PaymentController extends Controller
         } catch (CardException $e) {
             return redirect()->back()->with('error', 'Payment failed: ' . $e->getMessage());
         }
+    }
+    // end function
+
+    public function generateToken($appointmentId)
+    {
+        $appointmentId = Crypt::decrypt($appointmentId);  
+        $appointment = Appointment::findOrFail($appointmentId);  
+
+        return view('patient.payments.generate-token', compact('appointment'));
     }
 
 
