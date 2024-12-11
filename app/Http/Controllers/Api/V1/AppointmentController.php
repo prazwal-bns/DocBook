@@ -29,7 +29,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * View All Appointments for the Authenticated Doctor
+        * View All Appointments for the Authenticated Doctor [Doctor]
         *
             * - Fetches all appointments assigned to the logged-in doctor.
             * - Returns a list of appointments with details like patient, scheduled date, and status.
@@ -56,7 +56,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * View All Appointments for the Authenticated Patient
+        * View All Appointments for the Authenticated Patient [Patient]
         *
             * - Fetches all appointments associated with the logged-in patient.
             * - Returns a list of appointments with details such as the doctor, scheduled date, and status.
@@ -76,7 +76,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * Store a Newly Created Appointment
+        * Store a Newly Created Appointment [Patient]
         *
             * - Validates the incoming appointment request data.
             * - Calls the service class to store the appointment and payment details.
@@ -115,7 +115,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * View Appointment by ID
+        * View Appointment by ID [Patient]
         *
             * - Fetches a specific appointment based on the provided appointment ID.
             * - If the appointment is found, returns the appointment details.
@@ -149,7 +149,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * Update an Existing Appointment
+        * Update an Existing Appointment [Patient]
         *
             * - Retrieves the appointment by the provided appointment ID.
             * - Checks if the user is authorized to update the appointment using Gate.
@@ -239,7 +239,7 @@ class AppointmentController extends Controller
     
     /**
         *
-        * Delete an Appointment
+        * Delete an Appointment [Patient]
         *
             * - Finds the appointment by the provided appointment ID or returns a 404 if not found.
             * - Checks if the user is authorized to delete the appointment using Gate.
@@ -290,7 +290,7 @@ class AppointmentController extends Controller
 
 
    /**
-         * Update the status of an appointment.
+         * Update the status of an appointment [Doctor]
          *
          * - Validates the request and updates the status of an appointment if the user is authorized.
          * - For appointment status to be confirmed payment must be paid by patient.
@@ -354,7 +354,14 @@ class AppointmentController extends Controller
         ], 400);
     }
 
-
+    /**
+     * Search for doctors by name. [Patient]
+     *
+        * - Validates the search input to ensure a valid doctor name is provided.
+        * - Searches for doctors whose name matches the provided search query.
+        * - Returns a JSON response with either the search results or a message if no matches are found.
+        *
+    */
     public function searchByDoctorName(Request $request)
     {
         $validated = $request->validate([

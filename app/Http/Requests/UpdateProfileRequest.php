@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProfileRequest extends FormRequest
 {
@@ -19,32 +21,61 @@ class UpdateProfileRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    // public function rules()
+    // {
+    //     // Get the user ID to exclude from the unique email validation
+    //     $userId = $this->user()->id;
+
+    //     // Base validation rules for the common user fields
+    //     $rules = [
+    //         'name' => 'nulalble|string|max:255',
+    //         'email' => 'nullable|email|unique:users,email,' . $userId,
+    //         'address' => 'nullable|string',
+    //         'phone' => 'nullable|string',
+    //     ];
+
+    //     // If the user is a patient, add specific patient fields
+    //     if ($this->user()->role === 'patient') {
+    //         $rules['gender'] = 'nullable|string';
+    //         $rules['dob'] = 'nullable|date';
+    //     }
+
+    //     // If the user is a doctor, add specific doctor fields
+    //     if ($this->user()->role === 'doctor') {
+    //         $rules['specialization_id'] = 'nullable|exists:specializations,id';
+    //         $rules['bio'] = 'nullable|string';
+    //         $rules['status'] = 'nullable|in:available,not_available';
+    //     }
+
+    //     return $rules;
+    // }
+
+
     public function rules()
     {
-        // Get the user ID to exclude from the unique email validation
-        $userId = $this->user()->id;
-
-        // Base validation rules for the common user fields
         $rules = [
-            'name' => 'nulalble|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $userId,
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,',
             'address' => 'nullable|string',
             'phone' => 'nullable|string',
+            'status' => [ 'nullable', 
+                'required_if:role,doctor', 
+                Rule::in(['available', 'not_available'])
+            ],
         ];
 
-        // If the user is a patient, add specific patient fields
-        if ($this->user()->role === 'patient') {
-            $rules['gender'] = 'nullable|string';
-            $rules['dob'] = 'nullable|date';
-        }
+        // if ($user->role === 'patient') {
+        //     $rules['gender'] = 'nullable|string';
+        //     $rules['dob'] = 'nullable|date';
+        // }
 
-        // If the user is a doctor, add specific doctor fields
-        if ($this->user()->role === 'doctor') {
-            $rules['specialization_id'] = 'nullable|exists:specializations,id';
-            $rules['bio'] = 'nullable|string';
-            $rules['status'] = 'nullable|in:available,not_available';
-        }
+        // if ($user->role === 'doctor') {
+        //     $rules['specialization_id'] = 'nullable|exists:specializations,id';
+        //     $rules['bio'] = 'nullable|string';
+        //     $rules['status'] = 'nullable|in:available,not_available';
+        // }
 
         return $rules;
     }
+
 }

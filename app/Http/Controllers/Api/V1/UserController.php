@@ -33,7 +33,7 @@ class UserController extends Controller
 
     /**
         *
-        * Fetch and Paginate Users with Associated Patient and Doctor Data
+        * Fetch Users with their respective Patient and Doctor Data [Admin]
         *
             * - Retrieves users along with their associated patient and doctor data.
             * - Returns paginated results, including metadata like total count, current page, and page limits.
@@ -62,7 +62,7 @@ class UserController extends Controller
 
    /**
         *
-        * Register a New User and Generate an API Token
+        * Register a New User and Generate an API Token [Admin]
         *
             * - Validates the incoming request data for user registration.
             * - Calls the user service to register the user with the provided data.
@@ -90,7 +90,7 @@ class UserController extends Controller
 
     /**
         *
-        * Retrieve User Data by ID
+        * Retrieve User Data by ID [Admin]
         *
             * - Finds the user with the specified ID and includes related patient and doctor data.
             * - If the user is not found, returns a 404 error response.
@@ -115,7 +115,7 @@ class UserController extends Controller
 
     /**
         *
-        * Update User Profile Data
+        * Update User Profile Data [Admin]
         *
             * - Validates and updates the user's profile data, including optional password change.
             * - If the user is a patient, updates the patient-specific fields like gender and date of birth.
@@ -159,7 +159,7 @@ class UserController extends Controller
 
     /**
         *
-        * Delete User and Related Records
+        * Delete User and Related Records [Admin]
         *
             * - Attempts to find and delete a user based on the provided ID.
             * - If the user has a 'patient' role, deletes the associated patient record.

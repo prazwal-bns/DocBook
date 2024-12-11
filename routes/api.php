@@ -16,7 +16,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::prefix('V1')->group(function(){
+Route::prefix('V1')->middleware(['throttle:60'])->group(function(){
 
     // Public Routes for Register, Login and Logout
     Route::post('/register', [AuthController::class, 'register']);

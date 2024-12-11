@@ -19,7 +19,7 @@
 
         <!-- Payment Button -->
         <button id="generate-token" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition duration-300">
-            Pay
+            Generate Token
         </button>
 
         <!-- Display token -->
