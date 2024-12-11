@@ -19,7 +19,7 @@
 
             <!-- Appointments Link -->
             <a href="{{ route('make.appointment') }}"
-                class="px-4 py-2  text-white transition-all duration-300 rounded {{ request()->routeIs('make.appointment','view.doctorsBySpecialization','book.appointment') ? 'font-bold border-b-4 border-yellow-300' : '' }} hover:text-yellow-300 hover:border-b-2 hover:border-yellow-300">
+                class="px-4 py-2  text-white transition-all duration-300 rounded {{ request()->routeIs('make.appointment','view.doctorsBySpecialization','book.appointment','search.doctorsByName') ? 'font-bold border-b-4 border-yellow-300' : '' }} hover:text-yellow-300 hover:border-b-2 hover:border-yellow-300">
                 Make Appointment
             </a>
 

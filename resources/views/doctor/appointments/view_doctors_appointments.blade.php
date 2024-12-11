@@ -54,17 +54,14 @@
                                 <span class="px-2 py-1 text-xs font-semibold text-white rounded
                                     {{ $appointment->status == 'pending' ? 'bg-amber-500' : '' }}
                                     {{ $appointment->status == 'confirmed' ? 'bg-blue-500' : '' }}
-                                    {{ $appointment->status == 'cancelled' ? 'bg-red-500' : '' }}
                                     {{ $appointment->status == 'completed' ? 'bg-green-500' : '' }}">
                                     {{ ucfirst($appointment->status) }}
                                 </span>
-
                             </td>
                             
                             <td class="px-4 py-2">
                                 @if($appointment->payment->payment_status == 'paid')
                                     <span class="rounded-md px-2 py-1 text-sm font-semibold text-white bg-green-500">Paid</span>
-                                    
                                 @else
                                     <span class="rounded-md px-2 py-1 text-xs font-semibold text-white bg-red-500">UnPaid</span>
                                 @endif
@@ -76,7 +73,7 @@
                                     <a href="{{ route('view.a.doctor.appointment',$appointment->id) }}" class="inline-block px-4 py-2 ml-4 text-sm font-semibold text-white bg-green-600 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">
                                         View Appointment
                                     </a>
-                                    @if ($appointment->status === 'pending' || $appointment->status === 'confirmed')
+                                    @if ($appointment->status !== 'pending' && $appointment->status !== 'completed')  <!-- Hide Edit Status for pending and completed -->
                                         <a href="{{ route('edit.patient.appointment',$appointment->id) }}" class="inline-block px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                                             Edit Status
                                         </a>
@@ -96,7 +93,6 @@
 
                                 @endif
                             </td>
-
                         </tr>
                     @endforeach
                 </tbody>
@@ -105,7 +101,6 @@
                 {{ $appointmentData->links() }}
             </div>
         @endif
-
     @endif
 </div>
 @endsection

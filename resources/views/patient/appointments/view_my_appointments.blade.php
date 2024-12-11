@@ -123,7 +123,7 @@
                                         </a>
 
                                     </div>
-                                @else
+                                @elseif($appointment->payment->payment_status == 'paid')
                                     <span
                                         class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 bg-green-600 rounded shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50">Paid</span>
                                 @endif

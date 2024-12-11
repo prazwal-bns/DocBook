@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Resources\DoctorResource;
 use App\Mail\AppointmentSent;
 use App\Models\Payment;
 use App\Services\AppointmentService;
@@ -28,7 +29,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * View All Appointments for the Authenticated Doctor
+        * View All Appointments for the Authenticated Doctor [Doctor]
         *
             * - Fetches all appointments assigned to the logged-in doctor.
             * - Returns a list of appointments with details like patient, scheduled date, and status.
@@ -55,7 +56,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * View All Appointments for the Authenticated Patient
+        * View All Appointments for the Authenticated Patient [Patient]
         *
             * - Fetches all appointments associated with the logged-in patient.
             * - Returns a list of appointments with details such as the doctor, scheduled date, and status.
@@ -75,7 +76,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * Store a Newly Created Appointment
+        * Store a Newly Created Appointment [Patient]
         *
             * - Validates the incoming appointment request data.
             * - Calls the service class to store the appointment and payment details.
@@ -114,7 +115,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * View Appointment by ID
+        * View Appointment by ID [Patient]
         *
             * - Fetches a specific appointment based on the provided appointment ID.
             * - If the appointment is found, returns the appointment details.
@@ -127,6 +128,13 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::find($id);
         
+        // Gate::authorize('view',$appointment);
+        if(Gate::denies('view',$appointment)){
+            return response()->json([
+               'message' => 'You are not authorized to view this appointment.'
+            ], 403);
+        }
+
         if(!$appointment){
             return response()->json([
                 'message' => 'Appointment Not Found'
@@ -141,7 +149,7 @@ class AppointmentController extends Controller
 
     /**
         *
-        * Update an Existing Appointment
+        * Update an Existing Appointment [Patient]
         *
             * - Retrieves the appointment by the provided appointment ID.
             * - Checks if the user is authorized to update the appointment using Gate.
@@ -231,7 +239,7 @@ class AppointmentController extends Controller
     
     /**
         *
-        * Delete an Appointment
+        * Delete an Appointment [Patient]
         *
             * - Finds the appointment by the provided appointment ID or returns a 404 if not found.
             * - Checks if the user is authorized to delete the appointment using Gate.
@@ -281,62 +289,104 @@ class AppointmentController extends Controller
     }
 
 
-    /**
-        *
-        * Update the Status of an Appointment
-        *
-            * - Validates the new status for the appointment, ensuring it is one of: pending, confirmed, or completed.
-            * - Finds the appointment by ID and returns a 404 error if not found.
-            * - Checks if the status transition is valid based on the current status of the appointment.
-            * - If the transition is invalid, returns a 400 error indicating the invalid status change.
-            * - If the transition is valid, updates the appointment status and saves it.
-            * - Returns a success response with the updated appointment data.
-        *
+   /**
+         * Update the status of an appointment [Doctor]
+         *
+         * - Validates the request and updates the status of an appointment if the user is authorized.
+         * - For appointment status to be confirmed payment must be paid by patient.
+         * - Ensures that only valid transitions are allowed ('confirmed' to 'completed').
+         * - Returns appropriate JSON responses for success or error scenarios.
+         * 
     */
+
 
     public function updateAppointmentStatus(Request $request, $appointmentId)
     {
-        $validatedData = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed',
+        // Find the appointment or return a 404 error
+        $appointment = Appointment::findOrFail($appointmentId);
+
+        // Check if the authenticated user is the doctor assigned to the appointment
+        $doctor = Auth::user()->doctor;
+        if (!$doctor || $appointment->doctor_id !== $doctor->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You are not authorized to edit this appointment.',
+            ], 403);
+        }
+
+        // Check if the appointment is already completed
+        if ($appointment->status === 'completed') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This appointment is already completed and cannot be edited.',
+            ], 403);
+        }
+
+        // Check if the appointment is still pending
+        if ($appointment->status === 'pending') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment for this appointment is still pending and cannot be edited at the moment.',
+            ], 403);
+        }
+
+        // Validate the incoming status change
+        $validated = $request->validate([
+            'status' => ['required', 'in:confirmed,completed'],
         ]);
 
-        $appointment = Appointment::find($appointmentId);
-    
-        // If the appointment does not exist, return a 404 error
-        if (!$appointment) {
+        // Handle status transitions
+        if ($appointment->status === 'confirmed' && $request->status === 'completed') {
+            $appointment->update(['status' => 'completed']);
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Appointment not found.',
-            ], 404);
+                'status' => 'success',
+                'message' => 'Appointment status updated successfully.',
+                'data' => [
+                    'appointment' => $appointment,
+                ],
+            ], 200);
         }
-    
-        // Define valid status transitions
-        $validTransitions = [
-            'pending' => ['confirmed'],
-            'confirmed' => ['completed'],
-            'completed' => [],
-        ];
-    
-        $currentStatus = $appointment->status;
-        $newStatus = $validatedData['status'];
-    
-        if (!in_array($newStatus, $validTransitions[$currentStatus])) {
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid status change attempt.',
+        ], 400);
+    }
+
+    /**
+     * Search for doctors by name. [Patient]
+     *
+        * - Validates the search input to ensure a valid doctor name is provided.
+        * - Searches for doctors whose name matches the provided search query.
+        * - Returns a JSON response with either the search results or a message if no matches are found.
+        *
+    */
+    public function searchByDoctorName(Request $request)
+    {
+        $validated = $request->validate([
+            'doctor_name' => 'required|string|max:255',
+        ]);
+        $searchQuery = $validated['doctor_name'];
+        
+        $doctors = Doctor::whereHas('user', function ($query) use ($searchQuery) {
+            $query->where('name', 'like', '%' . $searchQuery . '%');
+        })
+        ->with(['user', 'specialization']) // Include related user and specialization details
+        ->get();
+
+        if($doctors->isEmpty()) {
             return response()->json([
-                'status' => 'error',
-                'message' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
-            ], 400);
+                'message' => 'No doctors match your search criteria at the moment.'   
+            ],200);
         }
-    
-        $appointment->status = $newStatus;
-        $appointment->save();
-    
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Appointment status updated successfully.',
-            'data' => [
-                'appointment' => $appointment,
-            ],
-        ], 200);
+            'message' => 'Search Results for ' . $searchQuery . '.',
+            'data' =>  DoctorResource::collection($doctors),
+        ],200);
     }
+
     
 }

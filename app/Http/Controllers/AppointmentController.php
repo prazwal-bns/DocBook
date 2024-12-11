@@ -10,6 +10,7 @@ use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Schedule;
 use App\Models\Specialization;
+use App\Models\User;
 use App\Services\AppointmentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -76,7 +77,7 @@ class AppointmentController extends Controller
     public function viewMyAppointment(){
         $userId = Auth::user()->id;
         $patientId = Patient::where('user_id', $userId)->value('id');
-        $appointmentData = Appointment::where('patient_id',$patientId)->latest()->paginate(3);
+        $appointmentData = Appointment::where('patient_id',$patientId)->latest()->paginate(4);
 
         return view('patient.appointments.view_my_appointments', compact('appointmentData'));
     }
@@ -105,42 +106,75 @@ class AppointmentController extends Controller
             abort(403, 'You are not authorized to edit this appointment.');
         }
 
-        if ($appointment->status === 'completed') {
-            abort(403, 'This appointment is already completed and cannot be edited.');
+        // Prevent editing if the appointment is completed or pending
+        if ($appointment->status === 'completed' || $appointment->status === 'pending') {
+            abort(403, 'This appointment cannot be edited because its status is either pending or completed.');
         }
 
         return view('doctor.appointments.edit_patient_appointment', compact('appointment'));
     }
+
     // end function
 
-    public function updatePatientAppointment(Request $request, $id){
-        $validatedData = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed',
-        ]);
+    // public function updatePatientAppointment(Request $request, $id){
+    //     $validatedData = $request->validate([
+    //         'status' => 'required|in:pending,confirmed,completed',
+    //     ]);
 
+    //     $appointment = Appointment::findOrFail($id);
+    //     $validTransitions = [
+    //         'pending' => ['confirmed'],      
+    //         'confirmed' => ['completed'],    
+    //         'completed' => [],               
+    //     ];
+
+    //     $currentStatus = $appointment->status;
+    //     $newStatus = $validatedData['status'];
+
+    //     // Check if the transition is valid
+    //     if (!in_array($newStatus, $validTransitions[$currentStatus])) {
+    //         return redirect()->back()->withErrors([
+    //             'status' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
+    //         ]);
+    //     }
+
+    //     // Update the status
+    //     $appointment->status = $newStatus;
+    //     $appointment->save();
+
+    //     return redirect()->route('view.doctor.appointments')->with('success', 'Appointment status updated successfully.');
+    // }
+
+    public function updatePatientAppointment(Request $request, $id)
+    {
         $appointment = Appointment::findOrFail($id);
-        $validTransitions = [
-            'pending' => ['confirmed'],      
-            'confirmed' => ['completed'],    
-            'completed' => [],               
-        ];
-
-        $currentStatus = $appointment->status;
-        $newStatus = $validatedData['status'];
-
-        // Check if the transition is valid
-        if (!in_array($newStatus, $validTransitions[$currentStatus])) {
-            return redirect()->back()->withErrors([
-                'status' => "Invalid status transition from {$currentStatus} to {$newStatus}.",
-            ]);
+        $doctor = Auth::user()->doctor;
+    
+        if (!$doctor || $appointment->doctor_id !== $doctor->id) {
+            abort(403, 'You are not authorized to edit this appointment.');
         }
-
-        // Update the status
-        $appointment->status = $newStatus;
-        $appointment->save();
-
-        return redirect()->route('view.doctor.appointments')->with('success', 'Appointment status updated successfully.');
+    
+        if ($appointment->status === 'completed') {
+            abort(403, 'This appointment is already completed and cannot be edited.');
+        }
+    
+        if ($appointment->status === 'pending') {
+            abort(403, 'This appointment is still pending and cannot be edited at the moment.');
+        }
+    
+        $validated = $request->validate([
+            'status' => ['required', 'in:confirmed,completed'],
+        ]);
+    
+        if ($appointment->status === 'confirmed' && $request->status === 'completed') {
+            $appointment->update(['status' => 'completed']);
+            return redirect()->route('view.doctor.appointments')->with('success', 'Appointment status updated successfully.');
+        }
+    
+        return redirect()->back()->with('error', 'Invalid status change attempt.');
     }
+    
+
 
     // end function
 
@@ -187,21 +221,6 @@ class AppointmentController extends Controller
         return view('patient.appointments.edit_appointment_date', compact('appointment'));
     }
     // end function
-
-    // public function updateMyAppointment(AppointmentRequest $request, $appointmentId)
-    // {
-    //     $appointment = Appointment::findOrFail($appointmentId);
-
-    //     // Gate::authorize('update',$appointment);
-
-    //     // Step 2: Use the service to update the appointment
-    //     try {
-    //         $this->appointmentService->updateAppointment($appointment, $request->validated());
-    //         return redirect()->route('view.my.appointment')->with('success', 'Appointment updated successfully!');
-    //     } catch (\Exception $e) {
-    //         return back()->with('error', $e->getMessage());
-    //     }
-    // }
 
     public function updateMyAppointment(AppointmentRequest $request, $appointmentId)
     {
@@ -251,4 +270,37 @@ class AppointmentController extends Controller
         $appointment->delete();
         return redirect()->route('view.my.appointment')->with('success', 'Appointment Deleted successfully!');
     }
+    // end function
+
+    // public function searchByName(Request $request){
+    //     $validated = $request->validate([
+    //         'doctor_name' => 'required|string|max:255'
+    //     ]);
+    //     $searchQuery = $validated['doctor_name'];
+
+    //     $doctors = User::where('name', 'like', '%' . $searchQuery . '%')
+    //                 ->where('role','doctor')
+    //                 ->with('doctor')
+    //                 ->get();
+
+    //     return view('patient.search_results', compact('doctors', 'searchQuery'));
+    // }
+
+    public function searchByName(Request $request)
+    {
+        $validated = $request->validate([
+            'doctor_name' => 'required|string|max:255',
+        ]);
+        $searchQuery = $validated['doctor_name'];
+        
+        $doctors = Doctor::whereHas('user', function ($query) use ($searchQuery) {
+            $query->where('name', 'like', '%' . $searchQuery . '%');
+        })
+        ->with(['user', 'specialization']) // Include related user and specialization details
+        ->get();
+
+        return view('patient.search_results', compact('doctors', 'searchQuery'));
+    }
+
+
 }

@@ -37,9 +37,9 @@ class PaymentController extends Controller
         return $esewa->init();
     }
 
-    public function esewaPaySuccess(Request $request) {
+    public function esewaPaySuccess() {
         $esewa = new Esewa();
-        $response = $esewa->decode($request);
+        $response = $esewa->decode();
 
         // dd($response);
 

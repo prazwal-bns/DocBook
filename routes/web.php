@@ -82,6 +82,9 @@ Route::middleware(['auth', 'role.redirect:patient'])->group(function () {
 
     // Appointment
     Route::get('/make/appointment',  [AppointmentController::class, 'makeAppointment'])->name('make.appointment');
+    Route::get('/doctors/search', [AppointmentController::class, 'searchByName'])->name('search.doctorsByName');
+
+
     Route::get('/view/doctorsSpecialization/{specializationId}',  [AppointmentController::class, 'viewDoctorsBySpecialization'])->name('view.doctorsBySpecialization');
 
     Route::get('/book/appointment/{doctorId}',  [AppointmentController::class, 'bookAppointment'])->name('book.appointment');

@@ -16,7 +16,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::prefix('V1')->group(function(){
+Route::prefix('V1')->middleware(['throttle:60'])->group(function(){
 
     // Public Routes for Register, Login and Logout
     Route::post('/register', [AuthController::class, 'register']);
@@ -56,6 +56,8 @@ Route::prefix('V1')->group(function(){
     // Patient Routes
     Route::prefix('patient')->middleware(['auth:sanctum','role.redirect:patient'])->group(function(){
         Route::apiResource('appointments',AppointmentController::class);
+
+        Route::get('/search/doctors', [AppointmentController::class, 'searchByDoctorName']);
         // Route::apiResource('specializations',SpecializationController::class)->only(['index']);
 
         Route::get('view/all/specializations', [SpecializationController::class, 'viewAllSpecializations'])->name('view.all.specializations');

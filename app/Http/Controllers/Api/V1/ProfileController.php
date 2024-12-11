@@ -46,34 +46,74 @@ class ProfileController extends Controller
         *
     */
 
+    // public function update(UpdateProfileRequest $request)
+    // {
+    //     $user = auth()->user(); // Get the logged-in user
+    //     $data = $request->validated(); // Get validated data
+
+    //     $user->update($data); // Update the user data
+
+    //     // If user is a patient, update patient-specific fields
+    //     if ($user->role === 'patient') {
+    //         $patient = Patient::where('user_id', $user->id)->first();
+    //         if ($patient) {
+    //             $patient->update($request->only(['gender', 'dob']));
+    //         }
+    //     }
+
+    //     // If user is a doctor, update doctor-specific fields
+    //     if ($user->role === 'doctor') {
+    //         $doctor = Doctor::where('user_id', $user->id)->first();
+    //         if ($doctor) {
+    //             $doctor->update($request->only(['specialization_id', 'bio', 'status']));
+    //         }
+    //     }
+
+    //     return response()->json([
+    //         'message' => 'Profile updated successfully!',
+    //         'data' => new UserResource($user)
+    //     ], 200);
+    // }
+
     public function update(UpdateProfileRequest $request)
-    {
-        $user = auth()->user(); // Get the logged-in user
-        $data = $request->validated(); // Get validated data
-
-        $user->update($data); // Update the user data
-
-        // If user is a patient, update patient-specific fields
-        if ($user->role === 'patient') {
-            $patient = Patient::where('user_id', $user->id)->first();
-            if ($patient) {
-                $patient->update($request->only(['gender', 'dob']));
-            }
-        }
-
-        // If user is a doctor, update doctor-specific fields
-        if ($user->role === 'doctor') {
-            $doctor = Doctor::where('user_id', $user->id)->first();
-            if ($doctor) {
-                $doctor->update($request->only(['specialization_id', 'bio', 'status']));
-            }
-        }
-
+{
+    // Check if the user is authenticated
+    $user = auth()->user();
+    
+    if (!$user) {
         return response()->json([
-            'message' => 'Profile updated successfully!',
-            'data' => new UserResource($user)
-        ], 200);
+            'status' => 'error',
+            'message' => 'User is not authenticated.',
+        ], 401); // Return an unauthorized status code if not authenticated
     }
+
+    // Get validated data from the request
+    $data = $request->validated();
+
+    // Update the user data
+    $user->update($data);
+
+    // If user is a patient, update patient-specific fields
+    if ($user->role === 'patient') {
+        $patient = Patient::where('user_id', $user->id)->first();
+        if ($patient) {
+            $patient->update($request->only(['gender', 'dob']));
+        }
+    }
+
+    // If user is a doctor, update doctor-specific fields
+    if ($user->role === 'doctor') {
+        $doctor = Doctor::where('user_id', $user->id)->first();
+        if ($doctor) {
+            $doctor->update($request->only(['specialization_id', 'bio', 'status']));
+        }
+    }
+
+    return response()->json([
+        'message' => 'Profile updated successfully!',
+        'data' => new UserResource($user)
+    ], 200);
+}
 
 
 
