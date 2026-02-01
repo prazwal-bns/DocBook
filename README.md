@@ -1,4 +1,4 @@
-# DocBook [Doctor Appointment System]
+# Doc Book [Doctor Appointment System]
 
 🚀🚀 A comprehensive Doctor Appointment System built using Laravel. ⭐⭐
 
