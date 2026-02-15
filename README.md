@@ -1,6 +1,6 @@
 # Doc Book [Doctor Appointment System]
 
-🚀🚀 A comprehensive Doctor Appointment System built using Laravel. ⭐⭐
+🚀🚀 A comprehensive Doctor Appointment Application built using Laravel. ⭐⭐
 
 The **Doctor Appointment System** is a Laravel project designed to manage interactions/appoinments between patients, doctor. It allows patients to book appointments, doctors to manage their schedules, and admins to verify doctors and oversee the system.
 
